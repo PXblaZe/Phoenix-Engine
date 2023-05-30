@@ -1,2 +1,4 @@
 libs/
-Application
+main
+ts.cpp
+ts
