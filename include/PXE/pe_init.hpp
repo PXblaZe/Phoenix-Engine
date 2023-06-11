@@ -13,8 +13,8 @@
     #include <GL/glew.h>
 #endif
 
-
 #include <GLFW/glfw3.h>
+#include <glm/matrix.hpp>
 
 
 #define PXassert(x) if(!(x)) std::raise(SIGINT);
@@ -25,6 +25,67 @@
 #else 
     #define PXcall(...) __VA_ARGS__
 #endif
+
+template<typename _Tp>
+struct GLtype {
+    static_assert(sizeof(_Tp)==0, "Unsupported type for GLtype.");
+};
+
+template<> struct GLtype<signed char> {
+    using type = GLchar;
+    static constexpr unsigned int enumval = GL_BYTE;
+};
+
+template<> struct GLtype<unsigned char> {
+    using type = GLubyte;
+    static constexpr unsigned int enumval = GL_UNSIGNED_BYTE;
+};
+
+template<> struct GLtype<bool> {
+    using type = GLboolean;
+    static  constexpr unsigned int enumval = GL_BOOL;
+};
+
+template<> struct GLtype<signed int> {
+    using type = GLint;
+    static constexpr unsigned int enumval = GL_INT;
+};
+
+template<> struct GLtype<unsigned int> {
+    using type = GLuint;
+    static constexpr unsigned int enumval = GL_UNSIGNED_INT;
+};
+
+template<> struct GLtype<signed short> {
+    using type = GLshort;
+    static constexpr unsigned int enumval = GL_SHORT;
+};
+
+template<> struct GLtype<unsigned short> {
+    using type = GLushort;
+    static constexpr unsigned int enumval = GL_UNSIGNED_SHORT;
+};
+
+template<> struct GLtype<float> {
+    using type = GLfloat;
+    static constexpr unsigned int enumval = GL_FLOAT;
+};
+
+template<> struct GLtype<double> {
+    using type = GLdouble;
+    static constexpr unsigned int enumval = GL_DOUBLE;
+};
+
+template<> struct GLtype<unsigned long> {
+    using type = GLulong;
+    static constexpr unsigned int enumval = GL_NONE;
+};
+template<> struct GLtype<void> {
+    using type = GLvoid;
+    static constexpr unsigned int enumval = GL_NONE;
+};
+
+
 
 void PXclearGLERlogs();
 
