@@ -1,7 +1,5 @@
 #pragma once
 
-#include "PXE/pe_init.hpp"
-
 namespace px {
 
     class VertexBuffer {
@@ -12,7 +10,9 @@ namespace px {
 
         const unsigned int bufferSize;
 
-        VertexBuffer(size_t size, const void* data = nullptr, unsigned int glUsage = GL_STATIC_DRAW);
+        VertexBuffer(size_t size, const void* data = nullptr);
+        VertexBuffer(size_t size, unsigned int glUsage, const void* data = nullptr);
+        ~VertexBuffer();
 
         void updateBufferData(const void* data, unsigned int offset = 0, size_t size = NULL) const;
 

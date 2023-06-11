@@ -2,3 +2,4 @@ libs/
 main
 ts.cpp
 ts
+genGLtypeMap.py

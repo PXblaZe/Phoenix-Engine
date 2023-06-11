@@ -13,6 +13,7 @@ int main() {
 
     // px::Window win(1, 1, "Phoenix Engine");
     px::Window win("PX Engine");
+    // win.showWindow();
     
     px::VertexBuffer vb(4*50);
     void* p = malloc(4*10);

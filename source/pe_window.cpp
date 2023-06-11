@@ -43,7 +43,6 @@ namespace px {
         *(int*)&width = vmode->width, *(int*)&height = vmode->height;
         if (windowed) glfwSetWindowSize(this->window, width, height);
         else glfwSetWindowMonitor(this->window, monitor, 0, 0, width, height, vmode->refreshRate);
-        glfwHideWindow(window);
         glfwMakeContextCurrent(this->window);
         #ifdef GLEW_VERSION
             glewInit();
@@ -55,11 +54,11 @@ namespace px {
         glfwTerminate();
     }
 
-    void px::Window::hideWindow() const {
+    void Window::hideWindow() const {
         glfwHideWindow(window);
     }
 
-    void px::Window::hideWindow() const {
+    void Window::showWindow() const {
         glfwShowWindow(window);
     }
 
