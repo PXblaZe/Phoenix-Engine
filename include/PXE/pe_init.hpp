@@ -14,7 +14,8 @@
 #endif
 
 #include <GLFW/glfw3.h>
-#include <glm/matrix.hpp>
+#include <glm/glm.hpp>
+
 
 
 #define PXassert(x) if(!(x)) std::raise(SIGINT);
@@ -84,8 +85,6 @@ template<> struct GLtype<void> {
     using type = GLvoid;
     static constexpr unsigned int enumval = GL_NONE;
 };
-
-
 
 void PXclearGLERlogs();
 
