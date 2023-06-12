@@ -1,21 +1,30 @@
 #pragma once
 
-
+#include <vector>
 namespace px {
 
-    class VertexBufferLayout {
+class VertexBufferLayout {
 
-        struct VertexArrayAttrib {
-            unsigned int type;
-            unsigned int count;
-            unsigned char normalized;
+    struct VertexArrayAttrib {
+        unsigned int type;
+        unsigned int count;
+        unsigned char normalized;
+        static unsigned int getStride(unsigned int GLtype); 
+    };
 
-            static unsigned int getStride(unsigned int GLtype); 
+    std::vector<struct VertexBufferLayout::VertexArrayAttrib> layout;
 
-        };
-
-    unsigned int VertexArrayAttrib(unsigned int GLtype);
+public:
+    template<typename T>
+    void attachAttrib(bool normalized = false)
+    {
+        layout.push_back({
+            GLtype<T>::enumval, 
+            layout.size(), 
+            normalized ? 1 : 0
+        });
+    }
 
 };
 
-};
+} // namespace px
