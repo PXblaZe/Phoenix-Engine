@@ -1,8 +1,18 @@
+#include <sstream>
+#include <string.h>
 #include <iostream>
 
 #include "PXE/pe_init.hpp"
 
-void PXclearGLERlogs() {
+const char* to_hex(unsigned int num)
+{
+    std::stringstream ss;
+    ss << std::hex << num;
+    return strcpy((char*)malloc(9), ss.str().c_str());
+}
+
+void PXclearGLERlogs()
+{
     while (glGetError());
 }
 

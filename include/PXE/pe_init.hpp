@@ -86,6 +86,8 @@ template<> struct GLtype<void> {
     static constexpr unsigned int enumval = GL_NONE;
 };
 
+const char* to_hex(unsigned int num);
+
 void PXclearGLERlogs();
 
 bool PXdisGLERlog(const char* funname, const char* filename, size_t line);
