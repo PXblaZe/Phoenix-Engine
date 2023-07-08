@@ -19,16 +19,16 @@ namespace px {
         ~Window();
 
         template<typename... Args>
-        void run(Window::RendererCallback<Args...> rcbf, Args... params) const {
+        void run(Window::RendererCallback<Args...> callback, Args... params) const {
             while (!glfwWindowShouldClose(this->window)) {
                 #pragma omp parallel
                 {
-                glClear(GL_COLOR_BUFFER_BIT);
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
                 // Draw call
                 #pragma omp critical
                 {
-                rcbf(params...);
+                callback(params...);
                 }
                 }
                 glfwSwapBuffers(this->window);

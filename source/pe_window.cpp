@@ -46,6 +46,7 @@ namespace px {
         glfwMakeContextCurrent(this->window);
         #ifdef GLEW_VERSION
             glewInit();
+            glEnable(GL_DEPTH_TEST);
         #endif
     }
 
