@@ -19,12 +19,13 @@ int main() {
     px::ShaderProgram sp;
     sp.createProgram(sc.parseCode("ver"), sc.parseCode("frag"));
     px::ShaderProgram::use(sp);
+
     // std::cout << sc.parseCode("ver") << std::endl << sc.parseCode("frag") << std::endl;
     std::cout << "vsID: " << sp.getShaderID(px::ShaderProgram::VERTEX_SHADER) << std::endl;
-    std::cout << "fsID: " << sp.getShaderID(px::ShaderProgram::FRAGMENTSHADER) << std::endl;
-    sp.cleanShaders(px::ShaderProgram::FRAGMENTSHADER | px::ShaderProgram::VERTEX_SHADER);
+    std::cout << "fsID: " << sp.getShaderID(px::ShaderProgram::FRAGMENT_SHADER) << std::endl;
+    sp.cleanShaders(px::ShaderProgram::FRAGMENT_SHADER | px::ShaderProgram::VERTEX_SHADER);
     std::cout << "vsID: " << sp.getShaderID(px::ShaderProgram::VERTEX_SHADER) << std::endl;
-    std::cout << "fsID: " << sp.getShaderID(px::ShaderProgram::FRAGMENTSHADER) << std::endl;
+    std::cout << "fsID: " << sp.getShaderID(px::ShaderProgram::FRAGMENT_SHADER) << std::endl;
     win.run<int, float, const char*>(rcb, 10, 3.14, "Vipul");
 
     return 0;
