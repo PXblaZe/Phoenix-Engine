@@ -6,12 +6,13 @@
 #include "PXE/pe_init.hpp"
 #include "PXE/pe_program.hpp"
 
+
 #if defined(_WIN32) || defined(_WIN64)
-    #define strdupa(str) strcpy((char*)alloca(strlen(str) + 1), str)
-    #define strdup _strdup
+    #define strdupa(str) strcpy((char*)alloca(strlen(str) + 1), (str))
+    #define strdup(str) _strdup(str)
 #endif
 
-GLtype<unsigned int>::type cplShader(unsigned int type, const char* const GLScode, char** message) {
+GLtype<unsigned int>::type cplShader(unsigned int type, const char* const GLScode, char* &message) {
     GLtype<unsigned int>::type shid = glCreateShader(type);
     glShaderSource(shid, 1, &GLScode, nullptr);
     glCompileShader(shid);
@@ -21,9 +22,9 @@ GLtype<unsigned int>::type cplShader(unsigned int type, const char* const GLScod
     if (res == GL_FALSE) {
         GLint mlen;
         glGetShaderiv(shid, GL_INFO_LOG_LENGTH, &mlen);
-        char* msg = (char*)malloc(mlen);
-        glGetShaderInfoLog(shid, mlen, &mlen, msg);
-        message = &msg;
+        message = (char*)realloc(message, mlen);
+        PXassert(message != nullptr);
+        glGetShaderInfoLog(shid, mlen, &mlen, message);
         return 0;
     }
     
@@ -31,10 +32,28 @@ GLtype<unsigned int>::type cplShader(unsigned int type, const char* const GLScod
 }
 
 
+//    -- glGetUniformLocation() Wrappers --
+int locW(unsigned int a, const char* p) {return glGetUniformLocation(a, p);}
+
+
+//    -- glUniform*() Wrappers --
+
+void uniiW(int a, signed int b) { glUniform1i(a, b); }
+void uniuiW(int a, unsigned int b) { glUniform1ui(a, b); }
+void unifW(int a, float b) { glUniform1f(a, b); }
+void uni2fW(int a, glm::vec2 b) { glUniform2f(a, b.x, b.y); }
+void uni3fW(int a, glm::vec3 b) { glUniform3f(a, b.x, b.y, b.z); }
+void uni4fW(int a, glm::vec4 b) { glUniform4f(a, b.x, b.y, b.z, b.w); }
+void unidW(int a, double b) { glUniform1d(a, b); }
+void uni2dW(int a, glm::dvec2 b) { glUniform2d(a, b.x, b.y); }
+void uni3dW(int a, glm::dvec3 b) { glUniform3d(a, b.x, b.y, b.z); }
+void uni4dW(int a, glm::dvec4 b) { glUniform4d(a, b.x, b.y, b.z, b.w); }
+
+
 namespace px
 {
     ShaderCode::ShaderCode(const char* filepath, const char* delim, const char* name, const char* shaderType) 
-    {        
+    {
         size_t len = 0, clen = 0;
         FILE* pshc = fopen(filepath, "r");
         if (pshc == nullptr) perror("Unable to open file");
@@ -87,12 +106,17 @@ namespace px
                             tv = GL_VERTEX_SHADER;
                         else if (!memcmp(tknt, "FRAGMENT", 9))
                             tv = GL_FRAGMENT_SHADER;
+                        #if defined(GL_ARB_geometry_shader4) || defined(GL_EXT_geometry_shader4) || defined(GL_EXT_geometry_shader) || defined(GL_VERSION_3_2)|| defined(GL_ES_VESRION_3_2)
                         else if (!memcmp(tknt, "GEOMETRY", 9))
                             tv = GL_GEOMETRY_SHADER;
+                        #endif
+                        #if defined(GL_ARB_tessellation_shader) || defined(GL_EXT_tessellation_shader) || defined(GL_VERSION_4_0)|| defined(GL_ES_VESRION_3_2)
                         else if (!memcmp(tknt, "TESS_CONTROL", 13))
                             tv = GL_TESS_CONTROL_SHADER;
                         else if (!memcmp(tknt, "TESS_EVALUATION", 16))
                             tv = GL_TESS_EVALUATION_SHADER;
+                        #endif
+                        
                     }
                     tkns.pop();
                 }
@@ -136,42 +160,177 @@ namespace px
     }
 
 
-    ShaderProgram::ShaderProgram() {
-        this->programid = glCreateProgram();
+    ShaderProgram::ShaderProgram(): programid(glCreateProgram()) {}
+
+    void ShaderProgram::use(const ShaderProgram& program) {
+        glUseProgram(program.programid);
     }
 
-    void ShaderProgram::compileShader(const ShaderCode& scode, const char* const& name)
-    {
-        char* msg;
+    void ShaderProgram::createProgram(
+        const char* const& vertexShaderCode, 
+        const char* const& fragmentShaderCode, 
+        const char* const& geometryShaderCode,
+        const char* const& tess_controlShaderCode,
+        const char* const& tess_evalutionShaderCode
+    ) {
+        char* msg = nullptr;
         GLtype<unsigned int>::type shaderid = 0;
-        if (name != nullptr && shaderstate.find(name) == shaderstate.end()) {
-            shaderid = cplShader(scode.parseType(name), scode.parseCode(name), &msg);
-            if (shaderid) shaderstate.insert(std::make_pair(name, std::make_pair(shaderid, false)));
-            else std::__throw_runtime_error(std::string(std::to_string(__LINE__-1)+"| "+__FILE__+" error: failed to compile "+name+" shader (type: 0x"+to_hex(scode.parseType(name))+")\n"+msg).c_str());
-            return;
+
+        if (vertexShaderCode != nullptr)
+        {
+            shaderid = cplShader(GL_VERTEX_SHADER, vertexShaderCode, msg);
+            if (shaderid) this->curshaders[0] = shaderid;
+            else std::__throw_runtime_error(std::string(std::to_string(__LINE__-2)+"| "+__FILE__+" error: failed to compile vertex shader (type: 0x"+to_hex(GL_VERTEX_SHADER)+")\n"+msg).c_str());
+        }
+        if (fragmentShaderCode != nullptr)
+        {
+            shaderid = cplShader(GL_FRAGMENT_SHADER, fragmentShaderCode, msg);
+            if (shaderid) this->curshaders[1] = shaderid;
+            else std::__throw_runtime_error(std::string(std::to_string(__LINE__-2)+"| "+__FILE__+" error: failed to compile fragment shader (type: 0x"+to_hex(GL_FRAGMENT_SHADER)+")\n"+msg).c_str());
+        }
+        if (geometryShaderCode != nullptr) 
+        {
+            shaderid = cplShader(GL_GEOMETRY_SHADER, geometryShaderCode, msg);
+            if (shaderid) this->curshaders[2] = shaderid;
+            else std::__throw_runtime_error(std::string(std::to_string(__LINE__-2)+"| "+__FILE__+" error: failed to compile geometry shader (type: 0x"+to_hex(GL_GEOMETRY_SHADER)+")\n"+msg).c_str());
+        }
+        if (tess_controlShaderCode != nullptr)
+        {
+            shaderid = cplShader(GL_TESS_CONTROL_SHADER, tess_controlShaderCode, msg);
+            if (shaderid) this->curshaders[3] = shaderid;
+            else std::__throw_runtime_error(std::string(std::to_string(__LINE__-2)+"| "+__FILE__+" error: failed to compile tessellation control shader (type: 0x"+to_hex(GL_TESS_CONTROL_SHADER)+")\n"+msg).c_str());
+        }
+        if (tess_evalutionShaderCode != nullptr)
+        {
+            shaderid = cplShader(GL_TESS_EVALUATION_SHADER, tess_evalutionShaderCode, msg);
+            if (shaderid) this->curshaders[4] = shaderid;
+            else std::__throw_runtime_error(std::string(std::to_string(__LINE__-2)+"| "+__FILE__+" error: failed to compile tessellation evaluation shader (type: 0x"+to_hex(GL_TESS_EVALUATION_SHADER)+")\n"+msg).c_str());
         }
 
-        for (std::string n: scode.getNames()) {
-            shaderid = cplShader(scode.parseType(n.c_str()), scode.parseCode(n.c_str()), &msg);
-            if (shaderid) shaderstate.insert(std::make_pair(name, std::make_pair(shaderid, false)));
-            else std::__throw_runtime_error(std::string(std::to_string(__LINE__-1)+"| "+__FILE__+" error: failed to compile "+n+" shader (type: 0x"+to_hex(scode.parseType(n.c_str()))+")\n"+msg).c_str());
+        for (int i = 0; i < 5; i++) if (this->curshaders[i]) glAttachShader(this->programid, this->curshaders[i]);
+
+        GLtype<int>::type status;
+
+        glLinkProgram(this->programid);
+        glGetProgramiv(this->programid, GL_LINK_STATUS, &status);
+        if (status == GL_FALSE) {
+            GLtype<int>::type logLength;
+            glGetProgramiv(this->programid, GL_INFO_LOG_LENGTH, &logLength);
+            msg = (char*)realloc(msg, logLength);
+            glGetProgramInfoLog(this->programid, logLength, nullptr, msg);
+            std::__throw_runtime_error(std::string(std::to_string(__LINE__-7)+"| "+__FILE__+" error: failed to link shader program (programID: "+std::to_string(this->programid)+")\n"+msg).c_str());
         }
-        
+
+
+        glValidateProgram(this->programid);
+        glGetProgramiv(this->programid, GL_VALIDATE_STATUS, &status);
+        if (status == GL_FALSE) {
+            GLint logLength;
+            glGetProgramiv(this->programid, GL_INFO_LOG_LENGTH, &logLength);
+            msg = (char*)realloc(msg, logLength);
+            glGetProgramInfoLog(this->programid, logLength, nullptr, msg);
+            std::__throw_runtime_error(std::string(std::to_string(__LINE__-7)+"| "+__FILE__+" error: failed to validate shader program (programID: "+std::to_string(this->programid)+")\n"+msg).c_str());
+        }
+
+        if (msg != nullptr) free(msg);
     }
 
-    void ShaderProgram::deleteShader(const ShaderCode &scode, const char* const& name)
+    unsigned int ShaderProgram::getShaderID(ShaderType type) const
     {
-
+        switch (type)
+        {
+            case ShaderProgram::VERTEX_SHADER: return this->curshaders[0];
+            case ShaderProgram::FRAGMENT_SHADER: return this->curshaders[1];
+            case ShaderProgram::GEOMETRY_SHADER: return this->curshaders[2];
+            case ShaderProgram::TESS_CONTROL_SHADER: return this->curshaders[3];
+            case ShaderProgram::TESS_EVALUATION_SHADER: return this->curshaders[4];
+            default: return 0;
+        }
     }
 
-    void ShaderProgram::attachShader(const char *const &name)
+    void ShaderProgram::setUniform(const char* const& name, const float& value) const
     {
-
+        this->setUniform<float, locW, unifW>(name, value);
     }
 
-    void ShaderProgram::detachShader(const char *const &name)
+    void ShaderProgram::setUniform(const char* const& name, const signed int& value) const
     {
+        this->setUniform<signed int, locW, uniiW>(name, value);
+    }
 
+    void ShaderProgram::setUniform(const char* const& name, const unsigned int& value) const
+    {
+        this->setUniform<unsigned int, locW, uniuiW>(name, value);
+    }
+    void ShaderProgram::setUniform(const char* const& name, const double& value) const
+    {
+        this->setUniform<double, locW, unidW>(name, value);
+    }
+
+    void ShaderProgram::getUniform(const char* const& name, signed int* data) const
+    {
+        int loc = glGetUniformLocation(this->programid, name);
+        if (loc == -1) {
+            std::__throw_invalid_argument(std::string(std::to_string(__LINE__-4)+"| "+__FILE__+" error: uniform variable `name` not found in the shader program (programID: "+std::to_string(this->programid)+")\n").c_str());
+        }
+
+        glGetUniformiv(this->programid, loc, data);
+    }
+
+    void ShaderProgram::getUniform(const char* const& name, unsigned int* data) const
+    {
+        int loc = glGetUniformLocation(this->programid, name);
+        if (loc == -1) {
+            std::__throw_invalid_argument(std::string(std::to_string(__LINE__-4)+"| "+__FILE__+" error: uniform variable `name` not found in the shader program (programID: "+std::to_string(this->programid)+")\n").c_str());
+        }
+
+        glGetUniformuiv(this->programid, loc, data);
+    }
+
+    void ShaderProgram::getUniform(const char* const& name, float* data) const
+    {
+        int loc = glGetUniformLocation(this->programid, name);
+        if (loc == -1) {
+            std::__throw_invalid_argument(std::string(std::to_string(__LINE__-4)+"| "+__FILE__+" error: uniform variable `name` not found in the shader program (programID: "+std::to_string(this->programid)+")\n").c_str());
+        }
+
+        glGetUniformfv(this->programid, loc, data);
+    }
+
+    void ShaderProgram::getUniform(const char* const& name, double* data) const
+    {
+        int loc = glGetUniformLocation(this->programid, name);
+        if (loc == -1) {
+            std::__throw_invalid_argument(std::string(std::to_string(__LINE__-4)+"| "+__FILE__+" error: uniform variable `name` not found in the shader program (programID: "+std::to_string(this->programid)+")\n").c_str());
+        }
+
+        glGetUniformdv(this->programid, loc, data);
+    }
+
+    void ShaderProgram::cleanShaders(unsigned char shaderTypeMask)
+    {
+        while (shaderTypeMask) {
+            unsigned char type = shaderTypeMask & -shaderTypeMask;
+            switch (type)
+            {
+            case ShaderProgram::VERTEX_SHADER:
+                glDeleteShader(this->curshaders[0]), this->curshaders[0] = 0;
+                break;
+            case ShaderProgram::FRAGMENT_SHADER: 
+                glDeleteShader(this->curshaders[1]), this->curshaders[1] = 0;
+                break;
+            case ShaderProgram::GEOMETRY_SHADER:
+                glDeleteShader(this->curshaders[2]), this->curshaders[2] = 0;
+                break;
+            case ShaderProgram::TESS_CONTROL_SHADER:
+                glDeleteShader(this->curshaders[3]), this->curshaders[3] = 0;
+                break;
+            case ShaderProgram::TESS_EVALUATION_SHADER:
+                glDeleteShader(this->curshaders[4]), this->curshaders[4] = 0;
+                break;
+            }
+            shaderTypeMask ^= type;
+        }
     }
 
 } // namespace px
