@@ -38,16 +38,34 @@ int locW(unsigned int a, const char* p) {return glGetUniformLocation(a, p);}
 
 //    -- glUniform*() Wrappers --
 
-void uniiW(int a, signed int b) { glUniform1i(a, b); }
-void uniuiW(int a, unsigned int b) { glUniform1ui(a, b); }
-void unifW(int a, float b) { glUniform1f(a, b); }
-void uni2fW(int a, glm::vec2 b) { glUniform2f(a, b.x, b.y); }
-void uni3fW(int a, glm::vec3 b) { glUniform3f(a, b.x, b.y, b.z); }
-void uni4fW(int a, glm::vec4 b) { glUniform4f(a, b.x, b.y, b.z, b.w); }
-void unidW(int a, double b) { glUniform1d(a, b); }
-void uni2dW(int a, glm::dvec2 b) { glUniform2d(a, b.x, b.y); }
-void uni3dW(int a, glm::dvec3 b) { glUniform3d(a, b.x, b.y, b.z); }
-void uni4dW(int a, glm::dvec4 b) { glUniform4d(a, b.x, b.y, b.z, b.w); }
+inline void uniiinW(int a, const signed int* b, unsigned char c, int d) {
+    if (c == 1) glUniform1iv(a, d, b);
+    else if (c == 2) glUniform2iv(a, d, b);
+    else if (c == 3) glUniform3iv(a, d, b);
+    else if (c == 4) glUniform4iv(a, d, b);
+}
+inline void uniiuinW(int a, const unsigned int* b, unsigned char c, int d) {
+    if (c == 1) glUniform1uiv(a, d, b);
+    else if (c == 2) glUniform2uiv(a, d, b);
+    else if (c == 3) glUniform3uiv(a, d, b);
+    else if (c == 4) glUniform4uiv(a, d, b);
+}
+inline void uniifnW(int a, const float* b, unsigned char c, int d) {
+    if (c == 1) glUniform1fv(a, d, b);
+    else if (c == 2) glUniform2fv(a, d, b);
+    else if (c == 3) glUniform3fv(a, d, b);
+    else if (c == 4) glUniform4fv(a, d, b);
+}
+inline void uniidnW(int a, const double* b, unsigned char c, int d) {
+    if (c == 1) glUniform1dv(a, d, b);
+    else if (c == 2) glUniform2dv(a, d, b);
+    else if (c == 3) glUniform3dv(a, d, b);
+    else if (c == 4) glUniform4dv(a, d, b);
+}
+inline void uniiW(int a, signed int b) { glUniform1i(a, b); }
+inline void uniuiW(int a, unsigned int b) { glUniform1ui(a, b); }
+inline void unifW(int a, float b) { glUniform1f(a, b); }
+inline void unidW(int a, double b) { glUniform1d(a, b); }
 
 
 namespace px
@@ -248,11 +266,6 @@ namespace px
         }
     }
 
-    void ShaderProgram::setUniform(const char* const& name, const float& value) const
-    {
-        this->setUniform<float, locW, unifW>(name, value);
-    }
-
     void ShaderProgram::setUniform(const char* const& name, const signed int& value) const
     {
         this->setUniform<signed int, locW, uniiW>(name, value);
@@ -262,9 +275,52 @@ namespace px
     {
         this->setUniform<unsigned int, locW, uniuiW>(name, value);
     }
+
+    void ShaderProgram::setUniform(const char* const& name, const float& value) const
+    {
+        this->setUniform<float, locW, unifW>(name, value);
+    }
+
     void ShaderProgram::setUniform(const char* const& name, const double& value) const
     {
         this->setUniform<double, locW, unidW>(name, value);
+    }
+
+    void ShaderProgram::setUniform(const char* const& name, const signed int* value, unsigned int n) const
+    {
+        this->setUniform<signed int, locW, uniiinW>(name, value, 1, n);
+    }
+    void ShaderProgram::setUniform(const char* const& name, const unsigned int* value, unsigned int n) const
+    {
+        this->setUniform<unsigned int, locW, uniiuinW>(name, value, 1, n);
+    }
+    void ShaderProgram::setUniform(const char* const& name, const float* value, unsigned int n) const
+    {
+        this->setUniform<float, locW, uniifnW>(name, value, 1, n);
+    }
+    void ShaderProgram::setUniform(const char* const& name, const double* value, unsigned int n) const
+    {
+        this->setUniform<double, locW, uniidnW>(name, value, 1, n);
+    }
+
+    void ShaderProgram::setUniform(const char* const& name, const signed int* value, unsigned char veci, unsigned int n) const
+    {
+        this->setUniform<signed int, locW, uniiinW>(name, value, veci, n);
+    }
+
+    void ShaderProgram::setUniform(const char* const& name, const unsigned int* value, unsigned char veci, unsigned int n) const
+    {
+        this->setUniform<unsigned int, locW, uniiuinW>(name, value, veci, n);
+    }
+
+    void ShaderProgram::setUniform(const char* const& name, const float* value, unsigned char veci, unsigned int n) const
+    {
+        this->setUniform<float, locW, uniifnW>(name, value, veci, n);
+    }
+
+    void ShaderProgram::setUniform(const char* const& name, const double* value, unsigned char veci, unsigned int n) const
+    {
+        this->setUniform<double, locW, uniidnW>(name, value, veci, n);
     }
 
     void ShaderProgram::getUniform(const char* const& name, signed int* data) const
@@ -307,10 +363,10 @@ namespace px
         glGetUniformdv(this->programid, loc, data);
     }
 
-    void ShaderProgram::cleanShaders(unsigned char shaderTypeMask)
+    void ShaderProgram::cleanShaders(unsigned char maskShaderType)
     {
-        while (shaderTypeMask) {
-            unsigned char type = shaderTypeMask & -shaderTypeMask;
+        while (maskShaderType) {
+            unsigned char type = maskShaderType & -maskShaderType;
             switch (type)
             {
             case ShaderProgram::VERTEX_SHADER:
@@ -329,7 +385,7 @@ namespace px
                 glDeleteShader(this->curshaders[4]), this->curshaders[4] = 0;
                 break;
             }
-            shaderTypeMask ^= type;
+            maskShaderType ^= type;
         }
     }
 
