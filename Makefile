@@ -1,9 +1,9 @@
 LDir=libs
 SDir=source
 
-build: ${SDir}/*
+.ONESHELL:
 
-	@set -e
+build: ${SDir}/*
 
 	@if test ! -d ${LDir}; then \
 		mkdir -p ${LDir}; \
@@ -11,8 +11,11 @@ build: ${SDir}/*
 
 	@echo "\nBuilding..."
 
+	STATUS=1
+
 	@TOTAL=$$(ls -A "${PWD}/${SDir}/" | wc -l); \
 	CURRENT=0; \
+	export STATUS; \
 	for file in ${PWD}/${SDir}/* ; do \
 		filename="$${file##*/}" ; \
 		echo "Compiling $${file} file..." ; \
@@ -24,11 +27,16 @@ build: ${SDir}/*
 			echo "\033[0;32mBuilding $${PWD}/${LDir}/$${filename%.*}.o file...\033[0m $$PERCENT%" ; \
 		else \
 			echo "\033[0;31mError: unable to build $${PWD}/${LDir}/$${filename%.*}.o\033[0m" ; \
+			STATUS=0; \
 		fi \
-	done
+	done 
 
-	@echo "Successfully done.\n"
-
+	@export STATUS; \
+	if [ "$${STATUS}" = 1 ]; then \
+		echo "\n\033[0;34mSuccessfully done.\033[0m\n"; \
+	else \
+		echo "\n\033[0;31mFaild to build!\033[0m\n"; \
+	fi
 
 
 clean: ${LDir}/
