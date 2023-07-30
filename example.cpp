@@ -6,8 +6,10 @@
 #include "PXE/pe_program.hpp"
 #include "PXE/pe_vertexarray.hpp"
 
-void rcb(unsigned int a , float b, const char* str) {
-    glDrawElements(GL_TRIANGLES, 6, a, nullptr);
+void rcb(const px::VertexArray& vao, const px::ElementBuffer& ibo) {
+    vao.bind(), ibo.bind();
+    glDrawElements(GL_TRIANGLES, ibo.elementCount(), ibo.draw_callType(), nullptr);
+    vao.unbind(), ibo.unbind();
 }
 
 int main() {
@@ -39,13 +41,15 @@ int main() {
     sp.createProgram(sc.parseCode("ver"), sc.parseCode("frag"));
     px::ShaderProgram::use(sp);
 
+    vao.unbind(), ibo.unbind();
+
     // // std::cout << sc.parseCode("ver") << std::endl << sc.parseCode("frag") << std::endl;
     // std::cout << "vsID: " << sp.getShaderID(px::ShaderProgram::VERTEX_SHADER) << std::endl;
     // std::cout << "fsID: " << sp.getShaderID(px::ShaderProgram::FRAGMENT_SHADER) << std::endl;
     sp.cleanShaders(px::ShaderProgram::FRAGMENT_SHADER | px::ShaderProgram::VERTEX_SHADER);
     // std::cout << "vsID: " << sp.getShaderID(px::ShaderProgram::VERTEX_SHADER) << std::endl;
     // std::cout << "fsID: " << sp.getShaderID(px::ShaderProgram::FRAGMENT_SHADER) << std::endl;
-    win.run<unsigned int, float, const char*>(rcb, ibo.draw_callType(), 3.14, "Vipul");
+    win.run<const px::VertexArray&, const px::ElementBuffer&>(rcb, vao, ibo);
 
     return 0;
 }

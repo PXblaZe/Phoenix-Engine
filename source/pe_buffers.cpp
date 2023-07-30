@@ -74,6 +74,8 @@ namespace px {
         return 0;
     }
 
+    const unsigned int ElementBuffer::elementCount() const { return count; }
+
     void ElementBuffer::bind() const {
         PXcall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, iboID));
     }

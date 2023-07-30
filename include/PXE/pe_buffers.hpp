@@ -53,10 +53,10 @@ class ElementBuffer {
 public:
 
     template<typename _Tp>
-    ElementBuffer(unsigned int count, const _Tp* data) { create(sizeof(_Tp), count, data); }
+    explicit constexpr ElementBuffer(unsigned int count, const _Tp* data) { create(sizeof(_Tp), count, data); }
 
     template<typename... Args, typename = std::enable_if_t<isIntegrals<Args...>>>
-    ElementBuffer(Args... data)
+    constexpr ElementBuffer(Args... data)
     {
         create(sizeofFirstDataType(data...), sizeof...(Args), firstPointer(data...));
     }
@@ -66,6 +66,8 @@ public:
     void updateBufferData(const void* data, unsigned int offset = 0, size_t size = 0) const;
 
     void getBufferData(void* data, unsigned int offset = 0, size_t size = 0) const;
+
+    const unsigned int elementCount() const;
 
     const unsigned int draw_callType() const;
 
