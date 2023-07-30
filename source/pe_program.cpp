@@ -13,18 +13,18 @@
 #endif
 
 GLtype<unsigned int>::type cplShader(unsigned int type, const char* const GLScode, char* &message) {
-    GLtype<unsigned int>::type shid = glCreateShader(type);
-    glShaderSource(shid, 1, &GLScode, nullptr);
-    glCompileShader(shid);
+    GLtype<unsigned int>::type shid = PXcall(glCreateShader(type));
+    PXcall(glShaderSource(shid, 1, &GLScode, nullptr));
+    PXcall(glCompileShader(shid));
 
     GLint res;
-    glGetShaderiv(shid, GL_COMPILE_STATUS, &res);
+    PXcall(glGetShaderiv(shid, GL_COMPILE_STATUS, &res));
     if (res == GL_FALSE) {
         GLint mlen;
-        glGetShaderiv(shid, GL_INFO_LOG_LENGTH, &mlen);
+        PXcall(glGetShaderiv(shid, GL_INFO_LOG_LENGTH, &mlen));
         message = (char*)realloc(message, mlen);
         PXassert(message != nullptr);
-        glGetShaderInfoLog(shid, mlen, &mlen, message);
+        PXcall(glGetShaderInfoLog(shid, mlen, &mlen, message));
         return 0;
     }
     
@@ -33,31 +33,31 @@ GLtype<unsigned int>::type cplShader(unsigned int type, const char* const GLScod
 
 
 //    -- glGetUniformLocation() Wrappers --
-int locW(unsigned int a, const char* p) {return glGetUniformLocation(a, p);}
+int locW(unsigned int a, const char* p) {return PXcall(glGetUniformLocation(a, p));}
 
 
 //    -- glUniform*() Wrappers --
 
 inline void uniiinW(int a, const signed int* b, unsigned char c, int d) {
-    if (c == 1) glUniform1iv(a, d, b);
-    else if (c == 2) glUniform2iv(a, d, b);
-    else if (c == 3) glUniform3iv(a, d, b);
-    else if (c == 4) glUniform4iv(a, d, b);
+    if (c == 1) PXcall(glUniform1iv(a, d, b));
+    else if (c == 2) PXcall(glUniform2iv(a, d, b));
+    else if (c == 3) PXcall(glUniform3iv(a, d, b));
+    else if (c == 4) PXcall(glUniform4iv(a, d, b));
 }
 inline void uniiuinW(int a, const unsigned int* b, unsigned char c, int d) {
-    if (c == 1) glUniform1uiv(a, d, b);
-    else if (c == 2) glUniform2uiv(a, d, b);
-    else if (c == 3) glUniform3uiv(a, d, b);
-    else if (c == 4) glUniform4uiv(a, d, b);
+    if (c == 1) PXcall(glUniform1uiv(a, d, b));
+    else if (c == 2) PXcall(glUniform2uiv(a, d, b));
+    else if (c == 3) PXcall(glUniform3uiv(a, d, b));
+    else if (c == 4) PXcall(glUniform4uiv(a, d, b));
 }
 inline void uniifnW(int a, const float* b, unsigned char c, int d) {
-    if (c == 1) glUniform1fv(a, d, b);
-    else if (c == 2) glUniform2fv(a, d, b);
-    else if (c == 3) glUniform3fv(a, d, b);
-    else if (c == 4) glUniform4fv(a, d, b);
+    if (c == 1) PXcall(glUniform1fv(a, d, b));
+    else if (c == 2) PXcall(glUniform2fv(a, d, b));
+    else if (c == 3) PXcall(glUniform3fv(a, d, b));
+    else if (c == 4) PXcall(glUniform4fv(a, d, b));
 }
 inline void uniidnW(int a, const double* b, unsigned char c, int d) {
-    if (c == 1) glUniform1dv(a, d, b);
+    if (c == 1) PXcall(glUniform1dv(a, d, b));
     else if (c == 2) glUniform2dv(a, d, b);
     else if (c == 3) glUniform3dv(a, d, b);
     else if (c == 4) glUniform4dv(a, d, b);

@@ -50,7 +50,8 @@ public:
         FRAGMENT_SHADER = 2,
         GEOMETRY_SHADER = 4, 
         TESS_CONTROL_SHADER = 8,
-        TESS_EVALUATION_SHADER = 16
+        TESS_EVALUATION_SHADER = 16,
+        ALL = 0x11111
     };
     
     ShaderProgram();
@@ -102,7 +103,6 @@ public:
     void setUniform(const char* const& name, const double& value) const;
     void setUniform(const char* const& name, const double* value, unsigned int n) const;
     void setUniform(const char* const& name, const double* value, unsigned char veci, unsigned int n = 1) const;
-
 
     void getUniform(const char* const& name, signed int* data) const;
     void getUniform(const char* const& name, unsigned int* data) const;

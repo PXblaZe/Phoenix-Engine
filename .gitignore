@@ -1,5 +1,4 @@
-.test/
 libs/
-main
+example
 ts.cpp
 ts
