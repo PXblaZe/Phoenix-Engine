@@ -20,9 +20,9 @@
 
 #define PXassert(x) if(!(x)) std::raise(SIGINT);
 #ifdef PX_DEBUG 
-    #define pxcall(x) PXclearGLERlogs(); \
+    #define PXcall(x) PXclearGLERlogs(); \
     x; \
-    PXassert(disGLERlog(#x, __FILE__, __LINE__)) 
+    PXassert(PXdisGLERlog(#x, __FILE__, __LINE__)) 
 #else 
     #define PXcall(...) __VA_ARGS__
 #endif
