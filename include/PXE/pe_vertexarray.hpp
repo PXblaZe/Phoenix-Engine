@@ -1,21 +1,25 @@
 #pragma once
 
+#include "PXE/pe_buffers.hpp"
+#include "PXE/pe_vertexbufferlayout.hpp"
+
 namespace px {
 
     class VertexArray {
 
-        unsigned int vaID;
-        
+        unsigned int vaoID;
 
     public:
 
         VertexArray();
 
-        void addBuffer();
+        ~VertexArray();
 
+        void attachVertexBuffer(const VertexBuffer& vb, const VertexBufferLayout& vblayout) const;
+        
         void bind() const;
 
-        void unbind() const;
+        static void unbind();
 
     };
 
