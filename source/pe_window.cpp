@@ -2,9 +2,20 @@
 #include <iostream>
 
 
+#include "PXE/pe_init.hpp"
 #include "PXE/pe_window.hpp"
 
+
 namespace px {
+
+    void Window::wscall(GLFWwindow* win, int w, int h) {
+        px::Window* uw = static_cast<Window*>(glfwGetWindowUserPointer(win));
+        glViewport(0, 0, uw->width, uw->height);
+    }
+    void Window::fbscall(GLFWwindow* win, int width, int height) {
+        px::Window* uw = static_cast<px::Window*>(glfwGetWindowUserPointer(win));
+        *(int*)&uw->width = width, *(int*)&uw->height = height;
+    }
     
     Window::Window(int width, int height, const char* title)
     : height(height), width(width), title(title) {
@@ -15,9 +26,18 @@ namespace px {
             std::__throw_runtime_error(std::string(std::to_string(__LINE__)+"| "+__FILE__+" error: unable to create a window.").c_str());
         }
         glfwMakeContextCurrent(this->window);
+        glfwSetWindowSizeCallback(window, wscall);
+        glfwSetFramebufferSizeCallback(window, fbscall);
         #ifdef GLEW_VERSION
-            glewInit();
+            if (glewInit() != GLEW_OK) {
+                glfwDestroyWindow(window);
+                glfwTerminate();
+                return;
+            }           
         #endif
+        glEnable(GL_DEPTH_TEST);
+        glfwSetWindowUserPointer(window, this);
+
     }
 
     Window::Window(const char *title, bool windowed)
@@ -44,10 +64,17 @@ namespace px {
         if (windowed) glfwSetWindowSize(this->window, width, height);
         else glfwSetWindowMonitor(this->window, monitor, 0, 0, width, height, vmode->refreshRate);
         glfwMakeContextCurrent(this->window);
+        glViewport(0, 0, width, height);
         #ifdef GLEW_VERSION
-            glewInit();
-            glEnable(GL_DEPTH_TEST);
+            if (glewInit() != GLEW_OK) {
+                glfwDestroyWindow(window);
+                glfwTerminate();
+                return;
+            }
         #endif
+        glEnable(GL_DEPTH_TEST);
+        glfwSetWindowUserPointer(window, this);
+
     }
 
     Window::~Window() {
@@ -62,5 +89,10 @@ namespace px {
     void Window::showWindow() const {
         glfwShowWindow(window);
     }
+
+    void Window::swapBuffers() const { glfwSwapBuffers(this->window); }
+    void Window::pollEvents() const { glfwPollEvents(); }
+    void Window::clear() const { glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); }
+    int Window::shouldClose() const { return glfwWindowShouldClose(this->window); }
 
 } // namespace px
