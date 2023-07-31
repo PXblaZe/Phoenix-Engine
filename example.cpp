@@ -5,6 +5,8 @@
 #include "PXE/pe_window.hpp"
 #include "PXE/pe_program.hpp"
 #include "PXE/pe_vertexarray.hpp"
+#include "PXE/pe_init.hpp"
+
 
 void rcb(const px::VertexArray& vao, const px::ElementBuffer& ibo) {
     vao.bind(), ibo.bind();
@@ -14,8 +16,8 @@ void rcb(const px::VertexArray& vao, const px::ElementBuffer& ibo) {
 
 int main() {
     
-    px::Window win(800, 600, "Phoenix Engine");
-    // px::Window win("While Noise");
+    // px::Window win(800, 600, "Phoenix Engine");
+    px::Window win("While Noise");
 
     GLfloat v[8] {
         -.5, .5,
