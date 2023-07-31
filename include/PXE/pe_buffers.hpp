@@ -58,7 +58,9 @@ public:
     template<typename... Args, typename = std::enable_if_t<isIntegrals<Args...>>>
     constexpr ElementBuffer(Args... data)
     {
-        create(sizeofFirstDataType(data...), sizeof...(Args), firstPointer(data...));
+        auto* pData = firstPointer(data...);
+        create(sizeofFirstDataType(data...), sizeof...(Args), pData);
+        free((void*)pData);
     }
 
     ~ElementBuffer();
