@@ -1,7 +1,6 @@
 #pragma once
 
 #include <vector>
-#include <iostream>
 
 namespace px {
 
@@ -69,9 +68,9 @@ public:
 
     void getBufferData(void* data, unsigned int offset = 0, size_t size = 0) const;
 
-    const unsigned int elementCount() const;
+    const unsigned int elementCount() const noexcept;
 
-    const unsigned int draw_callType() const;
+    const unsigned int draw_callType() const noexcept;
 
     void bind() const;
 

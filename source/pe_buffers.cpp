@@ -1,5 +1,4 @@
 
-#include <iostream>
 
 #include "PXE/pe_init.hpp"
 #include "PXE/pe_buffers.hpp"
@@ -63,7 +62,7 @@ namespace px {
         PXcall(glGetBufferSubData(GL_ELEMENT_ARRAY_BUFFER, offset, size ? size : type_size*count-offset, data));
     }
 
-    const unsigned int ElementBuffer::draw_callType() const 
+    const unsigned int ElementBuffer::draw_callType() const  noexcept
     {
         switch(type_size)
         {
@@ -74,7 +73,7 @@ namespace px {
         return 0;
     }
 
-    const unsigned int ElementBuffer::elementCount() const { return count; }
+    const unsigned int ElementBuffer::elementCount() const noexcept { return count; }
 
     void ElementBuffer::bind() const {
         PXcall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, iboID));

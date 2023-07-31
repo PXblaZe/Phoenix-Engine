@@ -34,7 +34,7 @@ int main() {
 
     // px::ElementBuffer ibo(6, i);
     px::ElementBuffer ibo((char)0, 1, 2, 2, 3, 0);
-    std::cout << std::hex << ibo.draw_callType() << std::endl;
+    std::cout << to_hex(ibo.draw_callType()) << std::endl;
 
     px::ShaderCode sc("testShader.glsl");
     px::ShaderProgram sp;
