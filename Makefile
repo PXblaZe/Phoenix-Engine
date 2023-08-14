@@ -3,6 +3,21 @@ SDir=source
 
 .ONESHELL:
 
+
+# build: compile
+
+# 	@echo "\033[0;32mBuilding...\033[0m"
+# 	@mkdir build
+# 	@mv libs build/ && cp -r include/* build
+# 	@g++ -shared -o build/libpxe.so build/${LDir}/*
+# 	@if [ -d build/PXE ] && [ -f build/libpxe.so ]; then \
+#         echo "\033[1A\033[11C \033[0;34mDone.\033[0m"; \
+#     else \
+#         echo "\033[0;31mBuild failed.\033[0m"; \
+#     fi
+
+
+
 build: ${SDir}/*
 
 	@if test ! -d ${LDir}; then \
@@ -46,3 +61,5 @@ clean: ${LDir}/
 		rm -rf ${LDir} ; \
 		echo "Successfully done.\n" ; \
 	fi
+
+rebuild: clean build
