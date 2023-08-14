@@ -8,7 +8,7 @@ const char* to_hex(unsigned int num)
 {
     std::stringstream ss;
     ss << std::hex << num;
-    return ss.str().c_str();
+    return strdup(ss.str().c_str());
 }
 
 void PXclearGLERlogs()
