@@ -1,4 +1,8 @@
-libs/
 example
 ts.cpp
 ts
+ts?
+ts?.cpp
+build/
+libs/
+backup/
