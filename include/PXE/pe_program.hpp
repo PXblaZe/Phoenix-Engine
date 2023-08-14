@@ -2,8 +2,10 @@
 
 #include <vector>
 #include <string>
+#include <type_traits>
 #include <unordered_map>
 
+#include "__pe_win32.hpp"
 
 namespace px
 {
@@ -38,24 +40,75 @@ public:
     ~ShaderCode();
 };
 
+
 class ShaderProgram {
 
     unsigned int programid;
     unsigned int curshaders[5] = {};
 
+    struct UniAttriFormat {
+        unsigned int index; // location of the GLSL variable
+        std::string name;
+        unsigned int type; // type of the GLSL variable (float, vec3 or mat4, etc)
+        int arrayLength; // size of the GLSL variable (if varable is not an array arrayLength = 1)
+    };
+
+    template <typename... Args>
+    struct AreAllSameAndAllowedTypes {
+        static constexpr bool value =
+            std::conjunction<std::is_same<Args, typename std::common_type<Args...>::type>...>::value &&
+            std::conjunction<std::__is_one_of<Args, signed int, unsigned int, float, double>...>::value;
+    };
+
+    template<typename _T, typename _F, typename... _Nxt>
+    struct is_same_as_first: std::is_same<_T, _F> {};
+
+    template <typename First, typename... Next>
+    inline constexpr const First* firstPointer(unsigned char v, int n, First first, Next... args) const
+    { 
+        First* pData = (First*)malloc(v*n*sizeof(First));
+        size_t i = 1; pData[0] = first;
+        ((pData[i++] = args), ...);
+        return pData;
+    }    
+
+    template<typename _Tp, int (&_Lf)(unsigned int, const char*), void (&_Uf)(int, const _Tp*, unsigned char, int)>
+    void setUfm(const char* name, const _Tp* value, unsigned char _i, int _n) const
+    {
+        int myUniformLoc = _Lf(programid, name);
+
+        if (myUniformLoc == -1) {
+            throw std::invalid_argument(std::string(std::to_string(__LINE__-5)+"| "+__FILE__+" error: uniform variable `"+name+"` not found in the shader program (programID: "+std::to_string(programid)+")\n").c_str());
+        }
+
+        _Uf(myUniformLoc, value, _i, _n);
+    }
+
+    void __setUniform(const char* name, const signed int* value, unsigned char veci, int n) const;
+    void __setUniform(const char* name, const unsigned int* value, unsigned char veci, int n) const;
+    void __setUniform(const char* name, const float* value,  unsigned char veci, int n) const;
+    void __setUniform(const char* name, const double* value, unsigned char veci, int n) const;
+
 public:
 
     enum ShaderType {
+        None = 0,
         VERTEX_SHADER = 1,
         FRAGMENT_SHADER = 2,
         GEOMETRY_SHADER = 4, 
         TESS_CONTROL_SHADER = 8,
         TESS_EVALUATION_SHADER = 16,
-        ALL = 0x11111
     };
     
+    ShaderType ActiveShaders;
+
+    typedef struct UniAttriFormat UniAttriFormat;
+
     ShaderProgram();
-    static void use(const ShaderProgram& program);
+
+    void use() const;
+
+    static void idle();
 
     void createProgram(
         const char* const& vertexShaderCode = nullptr, 
@@ -65,54 +118,37 @@ public:
         const char* const& tess_evalutionShaderCode = nullptr
     );
 
-    unsigned int getShaderID(ShaderType type) const;
-
-    template<typename _Tp, int (&_Lf)(unsigned int, const char*), void (&_Uf)(int, _Tp)>
-    inline void setUniform(const char* const& name, const _Tp& value) const
+    template<
+    unsigned char vec = 1, int len = 1, typename... _Tps, typename = std::enable_if_t<AreAllSameAndAllowedTypes<_Tps...>::value>>
+    inline void setUniform(const char* name, _Tps... values) const
     {
-        int myUniformLoc = _Lf(programid, name);
-
-        if (myUniformLoc == -1) {
-            std::__throw_invalid_argument(std::string(std::to_string(__LINE__-5)+"| "+__FILE__+" error: uniform variable `name` not found in the shader program (programID: "+std::to_string(this->programid)+")\n").c_str());
-        }
-
-        _Uf(myUniformLoc, value);
+        auto* pData = firstPointer(vec, len, values...);
+        this->__setUniform(name, pData, vec, len);
+        free((void*)pData);
     }
 
-    template<typename _Tp, int (&_Lf)(unsigned int, const char*), void (&_Uf)(int, const _Tp*, unsigned char, int)>
-    inline void setUniform(const char* const& name, const _Tp* value, unsigned char _i, int _n) const
+    template<
+    unsigned char vec = 1, int len = 1, typename _Tp, typename = std::enable_if_t<std::__is_one_of<_Tp, signed int, unsigned int, float, double>::value>>
+    inline void setUniform(const char* name, const _Tp* values) const
     {
-        int myUniformLoc = _Lf(programid, name);
-
-        if (myUniformLoc == -1) {
-            std::__throw_invalid_argument(std::string(std::to_string(__LINE__-5)+"| "+__FILE__+" error: uniform variable `name` not found in the shader program (programID: "+std::to_string(this->programid)+")\n").c_str());
-        }
-
-        _Uf(myUniformLoc, value, _i, _n);
+        this->__setUniform(name, values, vec, len);
     }
 
-    void setUniform(const char* const& name, const signed int& value) const;
-    void setUniform(const char* const& name, const signed int* value, unsigned int n) const;
-    void setUniform(const char* const& name, const signed int* value, unsigned char veci, unsigned int n = 1) const;
-    void setUniform(const char* const& name, const unsigned int& value) const;
-    void setUniform(const char* const& name, const unsigned int* value, unsigned int n) const;
-    void setUniform(const char* const& name, const unsigned int* value, unsigned char veci, unsigned int n = 1) const;
-    void setUniform(const char* const& name, const float& value) const;
-    void setUniform(const char* const& name, const float* value, unsigned int n) const;
-    void setUniform(const char* const& name, const float* value,  unsigned char veci, unsigned int n = 1) const;
-    void setUniform(const char* const& name, const double& value) const;
-    void setUniform(const char* const& name, const double* value, unsigned int n) const;
-    void setUniform(const char* const& name, const double* value, unsigned char veci, unsigned int n = 1) const;
+    void getUniform(const char* name, signed int* data) const;
+    void getUniform(const char* name, unsigned int* data) const;
+    void getUniform(const char* name, float* data) const;
+    void getUniform(const char* name, double* data) const;
 
-    void getUniform(const char* const& name, signed int* data) const;
-    void getUniform(const char* const& name, unsigned int* data) const;
-    void getUniform(const char* const& name, float* data) const;
-    void getUniform(const char* const& name, double* data) const;
+    unsigned int getShaderType(ShaderType type) const;
+
+    const std::vector<UniAttriFormat> getUniformsList() const;
+
+    const std::vector<UniAttriFormat> getAttributesList() const;
+
+    inline unsigned int getProgramID() const noexcept { return programid; }
 
     void cleanShaders(unsigned char maskShaderType);
 
 };
 
-
 } // namespace px
-

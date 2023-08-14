@@ -1,18 +1,14 @@
 #include <stack>
 #include <stdio.h>
 #include <string.h>
+#include <stdexcept>
 #include <algorithm>
 
 #include "PXE/pe_init.hpp"
 #include "PXE/pe_program.hpp"
 
 
-#if defined(_WIN32) || defined(_WIN64)
-    #define strdupa(str) strcpy((char*)alloca(strlen(str) + 1), (str))
-    #define strdup(str) _strdup(str)
-#endif
-
-GLtype<unsigned int>::type cplShader(unsigned int type, const char* const GLScode, char* &message) {
+GLtype<unsigned int>::type cplShader(GLtype<unsigned int>::type type, const char* const GLScode, char* &message) {
     GLtype<unsigned int>::type shid = PXcall(glCreateShader(type));
     PXcall(glShaderSource(shid, 1, &GLScode, nullptr));
     PXcall(glCompileShader(shid));
@@ -33,40 +29,36 @@ GLtype<unsigned int>::type cplShader(unsigned int type, const char* const GLScod
 
 
 //    -- glGetUniformLocation() Wrappers --
-int locW(unsigned int a, const char* p) {return PXcall(glGetUniformLocation(a, p));}
+GLtype<int>::type locW(GLtype<unsigned int>::type a, const GLchar* p) {
+    return PXcall(glGetUniformLocation(a, p));
+}
 
+//    -- glUniform*v() Wrappers --
 
-//    -- glUniform*() Wrappers --
-
-inline void uniiinW(int a, const signed int* b, unsigned char c, int d) {
+void uniiinW(int a, const signed int* b, unsigned char c, int d) {
     if (c == 1) PXcall(glUniform1iv(a, d, b));
     else if (c == 2) PXcall(glUniform2iv(a, d, b));
     else if (c == 3) PXcall(glUniform3iv(a, d, b));
     else if (c == 4) PXcall(glUniform4iv(a, d, b));
 }
-inline void uniiuinW(int a, const unsigned int* b, unsigned char c, int d) {
+void uniiuinW(int a, const unsigned int* b, unsigned char c, int d) {
     if (c == 1) PXcall(glUniform1uiv(a, d, b));
     else if (c == 2) PXcall(glUniform2uiv(a, d, b));
     else if (c == 3) PXcall(glUniform3uiv(a, d, b));
     else if (c == 4) PXcall(glUniform4uiv(a, d, b));
 }
-inline void uniifnW(int a, const float* b, unsigned char c, int d) {
+void uniifnW(int a, const float* b, unsigned char c, int d) {
     if (c == 1) PXcall(glUniform1fv(a, d, b));
     else if (c == 2) PXcall(glUniform2fv(a, d, b));
     else if (c == 3) PXcall(glUniform3fv(a, d, b));
     else if (c == 4) PXcall(glUniform4fv(a, d, b));
 }
-inline void uniidnW(int a, const double* b, unsigned char c, int d) {
+void uniidnW(int a, const double* b, unsigned char c, int d) {
     if (c == 1) PXcall(glUniform1dv(a, d, b));
-    else if (c == 2) glUniform2dv(a, d, b);
-    else if (c == 3) glUniform3dv(a, d, b);
-    else if (c == 4) glUniform4dv(a, d, b);
+    else if (c == 2) PXcall(glUniform2dv(a, d, b));
+    else if (c == 3) PXcall(glUniform3dv(a, d, b));
+    else if (c == 4) PXcall(glUniform4dv(a, d, b));
 }
-inline void uniiW(int a, signed int b) { glUniform1i(a, b); }
-inline void uniuiW(int a, unsigned int b) { glUniform1ui(a, b); }
-inline void unifW(int a, float b) { glUniform1f(a, b); }
-inline void unidW(int a, double b) { glUniform1d(a, b); }
-
 
 namespace px
 {
@@ -78,7 +70,6 @@ namespace px
 
         unsigned int tv;
         char* line = nullptr, *target = nullptr, *cstr = nullptr;
-
         while (getline(&line, &len, pshc) != -1)
         {
             if (!memcmp(line, "//", 2)) {
@@ -144,7 +135,7 @@ namespace px
             else {
                 size_t llen = strlen(line);
                 cstr = (char*) realloc(cstr, cstr == nullptr? llen+1: clen+llen+1);
-                if (cstr == nullptr) std::__throw_bad_alloc();
+                if (cstr == nullptr) throw std::bad_alloc();
                 memcpy(cstr+clen, line, llen+1);
                 clen += llen;
                 cstr[clen] = '\0';
@@ -178,11 +169,10 @@ namespace px
     }
 
 
-    ShaderProgram::ShaderProgram(): programid(glCreateProgram()) {}
+    ShaderProgram::ShaderProgram(): programid(glCreateProgram()), ActiveShaders(None) {}
+    void ShaderProgram::idle() { PXcall(glUseProgram(0)); }
 
-    void ShaderProgram::use(const ShaderProgram& program) {
-        glUseProgram(program.programid);
-    }
+    void ShaderProgram::use() const { PXcall(glUseProgram(this->programid)); }
 
     void ShaderProgram::createProgram(
         const char* const& vertexShaderCode, 
@@ -198,62 +188,62 @@ namespace px
         {
             shaderid = cplShader(GL_VERTEX_SHADER, vertexShaderCode, msg);
             if (shaderid) this->curshaders[0] = shaderid;
-            else std::__throw_runtime_error(std::string(std::to_string(__LINE__-2)+"| "+__FILE__+" error: failed to compile vertex shader (type: 0x"+to_hex(GL_VERTEX_SHADER)+")\n"+msg).c_str());
+            else throw std::runtime_error(std::string(std::to_string(__LINE__-2)+"| "+__FILE__+" error: failed to compile vertex shader (type: 0x"+to_hex(GL_VERTEX_SHADER)+")\n"+msg).c_str());
         }
         if (fragmentShaderCode != nullptr)
         {
             shaderid = cplShader(GL_FRAGMENT_SHADER, fragmentShaderCode, msg);
             if (shaderid) this->curshaders[1] = shaderid;
-            else std::__throw_runtime_error(std::string(std::to_string(__LINE__-2)+"| "+__FILE__+" error: failed to compile fragment shader (type: 0x"+to_hex(GL_FRAGMENT_SHADER)+")\n"+msg).c_str());
+            else throw std::runtime_error(std::string(std::to_string(__LINE__-2)+"| "+__FILE__+" error: failed to compile fragment shader (type: 0x"+to_hex(GL_FRAGMENT_SHADER)+")\n"+msg).c_str());
         }
         if (geometryShaderCode != nullptr) 
         {
             shaderid = cplShader(GL_GEOMETRY_SHADER, geometryShaderCode, msg);
             if (shaderid) this->curshaders[2] = shaderid;
-            else std::__throw_runtime_error(std::string(std::to_string(__LINE__-2)+"| "+__FILE__+" error: failed to compile geometry shader (type: 0x"+to_hex(GL_GEOMETRY_SHADER)+")\n"+msg).c_str());
+            else throw std::runtime_error(std::string(std::to_string(__LINE__-2)+"| "+__FILE__+" error: failed to compile geometry shader (type: 0x"+to_hex(GL_GEOMETRY_SHADER)+")\n"+msg).c_str());
         }
         if (tess_controlShaderCode != nullptr)
         {
             shaderid = cplShader(GL_TESS_CONTROL_SHADER, tess_controlShaderCode, msg);
             if (shaderid) this->curshaders[3] = shaderid;
-            else std::__throw_runtime_error(std::string(std::to_string(__LINE__-2)+"| "+__FILE__+" error: failed to compile tessellation control shader (type: 0x"+to_hex(GL_TESS_CONTROL_SHADER)+")\n"+msg).c_str());
+            else throw std::runtime_error(std::string(std::to_string(__LINE__-2)+"| "+__FILE__+" error: failed to compile tessellation control shader (type: 0x"+to_hex(GL_TESS_CONTROL_SHADER)+")\n"+msg).c_str());
         }
         if (tess_evalutionShaderCode != nullptr)
         {
             shaderid = cplShader(GL_TESS_EVALUATION_SHADER, tess_evalutionShaderCode, msg);
             if (shaderid) this->curshaders[4] = shaderid;
-            else std::__throw_runtime_error(std::string(std::to_string(__LINE__-2)+"| "+__FILE__+" error: failed to compile tessellation evaluation shader (type: 0x"+to_hex(GL_TESS_EVALUATION_SHADER)+")\n"+msg).c_str());
+            else throw std::runtime_error(std::string(std::to_string(__LINE__-2)+"| "+__FILE__+" error: failed to compile tessellation evaluation shader (type: 0x"+to_hex(GL_TESS_EVALUATION_SHADER)+")\n"+msg).c_str());
         }
 
-        for (int i = 0; i < 5; i++) if (this->curshaders[i]) glAttachShader(this->programid, this->curshaders[i]);
+        for (int i = 0; i < 5; i++) if (this->curshaders[i]) PXcall(glAttachShader(this->programid, this->curshaders[i]));
 
         GLtype<int>::type status;
 
-        glLinkProgram(this->programid);
-        glGetProgramiv(this->programid, GL_LINK_STATUS, &status);
+        PXcall(glLinkProgram(this->programid));
+        PXcall(glGetProgramiv(this->programid, GL_LINK_STATUS, &status));
         if (status == GL_FALSE) {
             GLtype<int>::type logLength;
-            glGetProgramiv(this->programid, GL_INFO_LOG_LENGTH, &logLength);
+            PXcall(glGetProgramiv(this->programid, GL_INFO_LOG_LENGTH, &logLength));
             msg = (char*)realloc(msg, logLength);
-            glGetProgramInfoLog(this->programid, logLength, nullptr, msg);
-            std::__throw_runtime_error(std::string(std::to_string(__LINE__-7)+"| "+__FILE__+" error: failed to link shader program (programID: "+std::to_string(this->programid)+")\n"+msg).c_str());
+            PXcall(glGetProgramInfoLog(this->programid, logLength, nullptr, msg));
+            throw std::runtime_error(std::string(std::to_string(__LINE__-7)+"| "+__FILE__+" error: failed to link shader program (programID: "+std::to_string(this->programid)+")\n"+msg).c_str());
         }
 
 
-        glValidateProgram(this->programid);
-        glGetProgramiv(this->programid, GL_VALIDATE_STATUS, &status);
+        PXcall(glValidateProgram(this->programid));
+        PXcall(glGetProgramiv(this->programid, GL_VALIDATE_STATUS, &status));
         if (status == GL_FALSE) {
-            GLint logLength;
-            glGetProgramiv(this->programid, GL_INFO_LOG_LENGTH, &logLength);
+            GLtype<int>::type logLength;
+            PXcall(glGetProgramiv(this->programid, GL_INFO_LOG_LENGTH, &logLength));
             msg = (char*)realloc(msg, logLength);
-            glGetProgramInfoLog(this->programid, logLength, nullptr, msg);
-            std::__throw_runtime_error(std::string(std::to_string(__LINE__-7)+"| "+__FILE__+" error: failed to validate shader program (programID: "+std::to_string(this->programid)+")\n"+msg).c_str());
+            PXcall(glGetProgramInfoLog(this->programid, logLength, nullptr, msg));
+            throw std::runtime_error(std::string(std::to_string(__LINE__-7)+"| "+__FILE__+" error: failed to validate shader program (programID: "+std::to_string(this->programid)+")\n"+msg).c_str());
         }
-
+        
         if (msg != nullptr) free(msg);
     }
 
-    unsigned int ShaderProgram::getShaderID(ShaderType type) const
+    unsigned int ShaderProgram::getShaderType(ShaderType type) const
     {
         switch (type)
         {
@@ -266,101 +256,106 @@ namespace px
         }
     }
 
-    void ShaderProgram::setUniform(const char* const& name, const signed int& value) const
+    void ShaderProgram::__setUniform(const char* name, const signed int* value, unsigned char veci, int n) const
     {
-        this->setUniform<signed int, locW, uniiW>(name, value);
+        this->setUfm<signed int, locW, uniiinW>(name, value, veci, n);
     }
 
-    void ShaderProgram::setUniform(const char* const& name, const unsigned int& value) const
+    void ShaderProgram::__setUniform(const char* name, const unsigned int* value, unsigned char veci, int n) const
     {
-        this->setUniform<unsigned int, locW, uniuiW>(name, value);
+        this->setUfm<unsigned int, locW, uniiuinW>(name, value, veci, n);
     }
 
-    void ShaderProgram::setUniform(const char* const& name, const float& value) const
+    void ShaderProgram::__setUniform(const char* name, const float* value, unsigned char veci, int n) const
     {
-        this->setUniform<float, locW, unifW>(name, value);
+        this->setUfm<float, locW, uniifnW>(name, value, veci, n);
     }
 
-    void ShaderProgram::setUniform(const char* const& name, const double& value) const
+    void ShaderProgram::__setUniform(const char* name, const double* value, unsigned char veci, int n) const
     {
-        this->setUniform<double, locW, unidW>(name, value);
+        this->setUfm<double, locW, uniidnW>(name, value, veci, n);
     }
 
-    void ShaderProgram::setUniform(const char* const& name, const signed int* value, unsigned int n) const
+    void ShaderProgram::getUniform(const char* name, signed int* data) const
     {
-        this->setUniform<signed int, locW, uniiinW>(name, value, 1, n);
-    }
-    void ShaderProgram::setUniform(const char* const& name, const unsigned int* value, unsigned int n) const
-    {
-        this->setUniform<unsigned int, locW, uniiuinW>(name, value, 1, n);
-    }
-    void ShaderProgram::setUniform(const char* const& name, const float* value, unsigned int n) const
-    {
-        this->setUniform<float, locW, uniifnW>(name, value, 1, n);
-    }
-    void ShaderProgram::setUniform(const char* const& name, const double* value, unsigned int n) const
-    {
-        this->setUniform<double, locW, uniidnW>(name, value, 1, n);
-    }
-
-    void ShaderProgram::setUniform(const char* const& name, const signed int* value, unsigned char veci, unsigned int n) const
-    {
-        this->setUniform<signed int, locW, uniiinW>(name, value, veci, n);
-    }
-
-    void ShaderProgram::setUniform(const char* const& name, const unsigned int* value, unsigned char veci, unsigned int n) const
-    {
-        this->setUniform<unsigned int, locW, uniiuinW>(name, value, veci, n);
-    }
-
-    void ShaderProgram::setUniform(const char* const& name, const float* value, unsigned char veci, unsigned int n) const
-    {
-        this->setUniform<float, locW, uniifnW>(name, value, veci, n);
-    }
-
-    void ShaderProgram::setUniform(const char* const& name, const double* value, unsigned char veci, unsigned int n) const
-    {
-        this->setUniform<double, locW, uniidnW>(name, value, veci, n);
-    }
-
-    void ShaderProgram::getUniform(const char* const& name, signed int* data) const
-    {
-        int loc = glGetUniformLocation(this->programid, name);
+        int loc = PXcall(glGetUniformLocation(this->programid, name));
         if (loc == -1) {
-            std::__throw_invalid_argument(std::string(std::to_string(__LINE__-4)+"| "+__FILE__+" error: uniform variable `name` not found in the shader program (programID: "+std::to_string(this->programid)+")\n").c_str());
+            throw std::invalid_argument(std::string(std::to_string(__LINE__-4)+"| "+__FILE__+" error: uniform variable `name` not found in the shader program (programID: "+std::to_string(this->programid)+")\n").c_str());
         }
 
-        glGetUniformiv(this->programid, loc, data);
+        PXcall(glGetUniformiv(this->programid, loc, data));
     }
 
-    void ShaderProgram::getUniform(const char* const& name, unsigned int* data) const
+    void ShaderProgram::getUniform(const char* name, unsigned int* data) const
     {
-        int loc = glGetUniformLocation(this->programid, name);
+        int loc = PXcall(glGetUniformLocation(this->programid, name));
         if (loc == -1) {
-            std::__throw_invalid_argument(std::string(std::to_string(__LINE__-4)+"| "+__FILE__+" error: uniform variable `name` not found in the shader program (programID: "+std::to_string(this->programid)+")\n").c_str());
+            throw std::invalid_argument(std::string(std::to_string(__LINE__-4)+"| "+__FILE__+" error: uniform variable `name` not found in the shader program (programID: "+std::to_string(this->programid)+")\n").c_str());
         }
 
-        glGetUniformuiv(this->programid, loc, data);
+        PXcall(glGetUniformuiv(this->programid, loc, data));
     }
 
-    void ShaderProgram::getUniform(const char* const& name, float* data) const
+    void ShaderProgram::getUniform(const char* name, float* data) const
     {
-        int loc = glGetUniformLocation(this->programid, name);
+        int loc = PXcall(glGetUniformLocation(this->programid, name));
         if (loc == -1) {
-            std::__throw_invalid_argument(std::string(std::to_string(__LINE__-4)+"| "+__FILE__+" error: uniform variable `name` not found in the shader program (programID: "+std::to_string(this->programid)+")\n").c_str());
+            throw std::invalid_argument(std::string(std::to_string(__LINE__-4)+"| "+__FILE__+" error: uniform variable `name` not found in the shader program (programID: "+std::to_string(this->programid)+")\n").c_str());
         }
 
-        glGetUniformfv(this->programid, loc, data);
+        PXcall(glGetUniformfv(this->programid, loc, data));
     }
 
-    void ShaderProgram::getUniform(const char* const& name, double* data) const
+    void ShaderProgram::getUniform(const char* name, double* data) const
     {
-        int loc = glGetUniformLocation(this->programid, name);
+        int loc = PXcall(glGetUniformLocation(this->programid, name));
         if (loc == -1) {
-            std::__throw_invalid_argument(std::string(std::to_string(__LINE__-4)+"| "+__FILE__+" error: uniform variable `name` not found in the shader program (programID: "+std::to_string(this->programid)+")\n").c_str());
+            throw std::invalid_argument(std::string(std::to_string(__LINE__-4)+"| "+__FILE__+" error: uniform variable `name` not found in the shader program (programID: "+std::to_string(this->programid)+")\n").c_str());
         }
 
-        glGetUniformdv(this->programid, loc, data);
+        PXcall(glGetUniformdv(this->programid, loc, data));
+    }
+
+    const std::vector<ShaderProgram::UniAttriFormat> ShaderProgram::getUniformsList() const
+    {
+        GLtype<int>::type count = 0;
+        glGetProgramiv(this->programid, GL_ACTIVE_UNIFORMS, &count);
+
+        std::vector<UniAttriFormat> list(count);
+
+        GLtype<int>::type bufSize = 0; // maximum name length
+        glGetProgramiv(this->programid, GL_ACTIVE_UNIFORM_MAX_LENGTH, &bufSize), bufSize++;
+
+        GLchar* name = (GLchar*)alloca(bufSize); // variable name in GLSL
+
+        for (GLtype<unsigned int>::type i = 0; UniAttriFormat& fmt : list)
+        {   
+            glGetActiveUniform(this->programid, i, bufSize, nullptr, &fmt.arrayLength, &fmt.type, name);
+            fmt.name = name, fmt.index = i++;
+        }
+
+        return list;
+    }
+
+    const std::vector<ShaderProgram::UniAttriFormat> ShaderProgram::getAttributesList() const
+    {
+        GLtype<int>::type count = 0;
+        glGetProgramiv(this->programid, GL_ACTIVE_ATTRIBUTES, &count);
+
+        std::vector<UniAttriFormat> list(count);
+
+        GLtype<int>::type bufSize = 0; // maximum name length
+        glGetProgramiv(this->programid, GL_ACTIVE_ATTRIBUTE_MAX_LENGTH, &bufSize), bufSize++;
+
+        GLchar* name = (GLchar*)alloca(bufSize); // variable name in GLSL
+
+        for (GLtype<unsigned int>::type i = 0; UniAttriFormat& fmt : list)
+        {   
+            glGetActiveAttrib(this->programid, i, bufSize, nullptr, &fmt.arrayLength, &fmt.type, name);
+            fmt.name = name, fmt.index = i++;
+        }
+
+        return list;
     }
 
     void ShaderProgram::cleanShaders(unsigned char maskShaderType)
@@ -370,19 +365,19 @@ namespace px
             switch (type)
             {
             case ShaderProgram::VERTEX_SHADER:
-                glDeleteShader(this->curshaders[0]), this->curshaders[0] = 0;
+                PXcall(glDeleteShader(this->curshaders[0])), this->curshaders[0] = 0;
                 break;
             case ShaderProgram::FRAGMENT_SHADER: 
-                glDeleteShader(this->curshaders[1]), this->curshaders[1] = 0;
+                PXcall(glDeleteShader(this->curshaders[1])), this->curshaders[1] = 0;
                 break;
             case ShaderProgram::GEOMETRY_SHADER:
-                glDeleteShader(this->curshaders[2]), this->curshaders[2] = 0;
+                PXcall(glDeleteShader(this->curshaders[2])), this->curshaders[2] = 0;
                 break;
             case ShaderProgram::TESS_CONTROL_SHADER:
-                glDeleteShader(this->curshaders[3]), this->curshaders[3] = 0;
+                PXcall(glDeleteShader(this->curshaders[3])), this->curshaders[3] = 0;
                 break;
             case ShaderProgram::TESS_EVALUATION_SHADER:
-                glDeleteShader(this->curshaders[4]), this->curshaders[4] = 0;
+                PXcall(glDeleteShader(this->curshaders[4])), this->curshaders[4] = 0;
                 break;
             }
             maskShaderType ^= type;
