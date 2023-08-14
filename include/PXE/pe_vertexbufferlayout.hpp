@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <functional>
 namespace px {
 
 class VertexBufferLayout {
@@ -44,7 +45,7 @@ public:
         else if constexpr (std::is_same<_Tp, unsigned int>::value) pushui(count, normalized);
         else if constexpr (std::is_same<_Tp, signed short>::value) pushs(count, normalized);
         else if constexpr (std::is_same<_Tp, unsigned short>::value) pushus(count, normalized);
-        else std::__throw_bad_function_call();
+        else throw std::bad_function_call();
     }
 
     inline unsigned int getStride() const noexcept  { return stride; }
