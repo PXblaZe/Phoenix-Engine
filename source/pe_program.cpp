@@ -35,30 +35,52 @@ GLtype<int>::type locW(GLtype<unsigned int>::type a, const GLchar* p) {
 
 //    -- glUniform*v() Wrappers --
 
-void uniiinW(int a, const signed int* b, unsigned char c, int d) {
-    if (c == 1) PXcall(glUniform1iv(a, d, b));
-    else if (c == 2) PXcall(glUniform2iv(a, d, b));
-    else if (c == 3) PXcall(glUniform3iv(a, d, b));
-    else if (c == 4) PXcall(glUniform4iv(a, d, b));
+void uniiinW(int a, const signed int* b, unsigned char i, int n) {
+    if (i == 1) PXcall(glUniform1iv(a, n, b));
+    else if (i == 2) PXcall(glUniform2iv(a, n, b));
+    else if (i == 3) PXcall(glUniform3iv(a, n, b));
+    else if (i == 4) PXcall(glUniform4iv(a, n, b));
 }
-void uniiuinW(int a, const unsigned int* b, unsigned char c, int d) {
-    if (c == 1) PXcall(glUniform1uiv(a, d, b));
-    else if (c == 2) PXcall(glUniform2uiv(a, d, b));
-    else if (c == 3) PXcall(glUniform3uiv(a, d, b));
-    else if (c == 4) PXcall(glUniform4uiv(a, d, b));
+
+void uniifnW(int a, const float* b, unsigned char i, int n) {
+    if (i == 1) PXcall(glUniform1fv(a, n, b));
+    else if (i == 2) PXcall(glUniform2fv(a, n, b));
+    else if (i == 3) PXcall(glUniform3fv(a, n, b));
+    else if (i == 4) PXcall(glUniform4fv(a, n, b));
 }
-void uniifnW(int a, const float* b, unsigned char c, int d) {
-    if (c == 1) PXcall(glUniform1fv(a, d, b));
-    else if (c == 2) PXcall(glUniform2fv(a, d, b));
-    else if (c == 3) PXcall(glUniform3fv(a, d, b));
-    else if (c == 4) PXcall(glUniform4fv(a, d, b));
+
+#if defined(GL_VERSION_3_0) || defined(GL_ES_VERSION_3_0)
+void uniiuinW(int a, const unsigned int* b, unsigned char i, int n) {
+    if (i == 1) PXcall(glUniform1uiv(a, n, b));
+    else if (i == 2) PXcall(glUniform2uiv(a, n, b));
+    else if (i == 3) PXcall(glUniform3uiv(a, n, b));
+    else if (i == 4) PXcall(glUniform4uiv(a, n, b));
 }
-void uniidnW(int a, const double* b, unsigned char c, int d) {
-    if (c == 1) PXcall(glUniform1dv(a, d, b));
-    else if (c == 2) PXcall(glUniform2dv(a, d, b));
-    else if (c == 3) PXcall(glUniform3dv(a, d, b));
-    else if (c == 4) PXcall(glUniform4dv(a, d, b));
+#endif
+
+#if defined(GL_VERSION_2_0) || defined(GL_ES_VERSION_3_0) || defined(GL_ARB_gpu_shader_fp64)
+void uniidnW(int a, const double* b, unsigned char i, int n) {
+    if (i == 1) PXcall(glUniform1dv(a, n, b));
+    else if (i == 2) PXcall(glUniform2dv(a, n, b));
+    else if (i == 3) PXcall(glUniform3dv(a, n, b));
+    else if (i == 4) PXcall(glUniform4dv(a, n, b));
 }
+#endif
+
+void unimijfnW(int a, const float* b, unsigned char i, unsigned char j, int n, bool t) {
+    if (i == 2 && j == 2) PXcall(glUniformMatrix2fv(a, n, t ? GL_TRUE : GL_FALSE, b));
+    else if (i == 3 && j == 3) PXcall(glUniformMatrix3fv(a, n, t ? GL_TRUE : GL_FALSE, b));
+    else if (i == 4 && j == 4) PXcall(glUniformMatrix4fv(a, n, t ? GL_TRUE : GL_FALSE, b));
+#if defined(GL_VERSION_2_1) || defined(GL_ES_VERSION_3_1)
+    else if (i == 2 && j == 3) PXcall(glUniformMatrix2x3fv(a, n, t ? GL_TRUE : GL_FALSE, b));
+    else if (i == 2 && j == 4) PXcall(glUniformMatrix2x4fv(a, n, t ? GL_TRUE : GL_FALSE, b));
+    else if (i == 3 && j == 2) PXcall(glUniformMatrix3x2fv(a, n, t ? GL_TRUE : GL_FALSE, b));
+    else if (i == 3 && j == 4) PXcall(glUniformMatrix3x4fv(a, n, t ? GL_TRUE : GL_FALSE, b));
+    else if (i == 4 && j == 2) PXcall(glUniformMatrix4x2fv(a, n, t ? GL_TRUE : GL_FALSE, b));
+    else if (i == 4 && j == 3) PXcall(glUniformMatrix4x3fv(a, n, t ? GL_TRUE : GL_FALSE, b));
+#endif
+}
+
 
 namespace px
 {
@@ -169,7 +191,7 @@ namespace px
     }
 
 
-    ShaderProgram::ShaderProgram(): programid(glCreateProgram()), ActiveShaders(None) {}
+    ShaderProgram::ShaderProgram(): programid(glCreateProgram()) {}
     void ShaderProgram::idle() { PXcall(glUseProgram(0)); }
 
     void ShaderProgram::use() const { PXcall(glUseProgram(this->programid)); }
@@ -274,6 +296,11 @@ namespace px
     void ShaderProgram::__setUniform(const char* name, const double* value, unsigned char veci, int n) const
     {
         this->setUfm<double, locW, uniidnW>(name, value, veci, n);
+    }
+
+    void ShaderProgram::__setUniformMat(const char* name, const float* value, unsigned char r, unsigned char c, int n, bool tp) const
+    {
+        this->setUfmMat<locW, unimijfnW>(name, value, r, c, n, tp);
     }
 
     void ShaderProgram::getUniform(const char* name, signed int* data) const

@@ -48,7 +48,7 @@ class ShaderProgram {
 
     struct UniAttriFormat {
         unsigned int index; // location of the GLSL variable
-        std::string name;
+        std::string name; // name of the GLSL variable
         unsigned int type; // type of the GLSL variable (float, vec3 or mat4, etc)
         int arrayLength; // size of the GLSL variable (if varable is not an array arrayLength = 1)
     };
@@ -84,23 +84,34 @@ class ShaderProgram {
         _Uf(myUniformLoc, value, _i, _n);
     }
 
+    template<int (&_Lf)(unsigned int, const char*), void (&_Uf)(int, const float*, unsigned char, unsigned char, int, bool)>
+    void setUfmMat(const char* name, const float* value, unsigned char _i, unsigned char _j, int _n, bool _t) const
+    {
+        int myUniformLoc = _Lf(programid, name);
+
+        if (myUniformLoc == -1) {
+            throw std::invalid_argument(std::string(std::to_string(__LINE__-5)+"| "+__FILE__+" error: uniform variable `"+name+"` not found in the shader program (programID: "+std::to_string(programid)+")\n").c_str());
+        }
+
+        _Uf(myUniformLoc, value, _i, _j, _n, _t);
+    }
+
     void __setUniform(const char* name, const signed int* value, unsigned char veci, int n) const;
     void __setUniform(const char* name, const unsigned int* value, unsigned char veci, int n) const;
     void __setUniform(const char* name, const float* value,  unsigned char veci, int n) const;
     void __setUniform(const char* name, const double* value, unsigned char veci, int n) const;
+    void __setUniformMat(const char* name, const float* value, unsigned char r, unsigned char c, int n, bool tp) const;
 
 public:
 
     enum ShaderType {
-        None = 0,
         VERTEX_SHADER = 1,
         FRAGMENT_SHADER = 2,
         GEOMETRY_SHADER = 4, 
         TESS_CONTROL_SHADER = 8,
-        TESS_EVALUATION_SHADER = 16,
+        TESS_EVALUATION_SHADER = 16
     };
     
-    ShaderType ActiveShaders;
 
     typedef struct UniAttriFormat UniAttriFormat;
 
@@ -119,7 +130,9 @@ public:
     );
 
     template<
-    unsigned char vec = 1, int len = 1, typename... _Tps, typename = std::enable_if_t<AreAllSameAndAllowedTypes<_Tps...>::value>>
+        unsigned char vec = 1, int len = 1, typename... _Tps, 
+        typename = std::enable_if_t<AreAllSameAndAllowedTypes<_Tps...>::value>
+    >
     inline void setUniform(const char* name, _Tps... values) const
     {
         auto* pData = firstPointer(vec, len, values...);
@@ -128,10 +141,21 @@ public:
     }
 
     template<
-    unsigned char vec = 1, int len = 1, typename _Tp, typename = std::enable_if_t<std::__is_one_of<_Tp, signed int, unsigned int, float, double>::value>>
+        unsigned char vec = 1, int len = 1, typename _Tp, 
+        typename = std::enable_if_t<std::__is_one_of<_Tp, signed int, unsigned int, float, double>::value && (vec > 0 && vec < 5)>
+    >
     inline void setUniform(const char* name, const _Tp* values) const
     {
         this->__setUniform(name, values, vec, len);
+    }
+
+    template<
+        unsigned char  row, unsigned char column, int len = 1,
+        typename = std::enable_if_t<row < 5 && (row > 0 && row < 5 && column > 0 && column < 5)>
+    >
+    inline void setUniformMat(const char* name, const float* values, bool transpose = false) const
+    {
+        this->__setUniformMat(name, values, row, column, len, transpose);
     }
 
     void getUniform(const char* name, signed int* data) const;
