@@ -1,5 +1,6 @@
 #pragma once
 
+#include <PXE/pe_viewspace.hpp>
 
 namespace px {
 
@@ -8,6 +9,7 @@ namespace px {
         typedef struct GLFWwindow GLFWwindow;
 
         GLFWwindow* window;
+        Viewspace* camera;
 
         template<typename... ARGS>
         using RendererCallback =  void (*)(ARGS...);
@@ -47,6 +49,7 @@ namespace px {
         void swapBuffers() const;
         void pollEvents() const;
         void clear() const;
+        void setVsync(bool value) const;
         int shouldClose() const;
 
         Window(const Window&) = delete;

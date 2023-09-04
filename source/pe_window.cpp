@@ -35,6 +35,7 @@ namespace px {
                 return;
             }           
         #endif
+        this->setVsync(false);
         glEnable(GL_DEPTH_TEST);
         glfwSetWindowUserPointer(window, this);
 
@@ -72,6 +73,7 @@ namespace px {
                 return;
             }
         #endif
+        this->setVsync(false);
         glEnable(GL_DEPTH_TEST);
         glfwSetWindowUserPointer(window, this);
 
@@ -82,14 +84,9 @@ namespace px {
         glfwTerminate();
     }
 
-    void Window::hideWindow() const {
-        glfwHideWindow(window);
-    }
-
-    void Window::showWindow() const {
-        glfwShowWindow(window);
-    }
-
+    void Window::setVsync(bool value) const { glfwSwapInterval((int)value); }
+    void Window::hideWindow() const { glfwHideWindow(window); }
+    void Window::showWindow() const { glfwShowWindow(window); }
     void Window::swapBuffers() const { glfwSwapBuffers(this->window); }
     void Window::pollEvents() const { glfwPollEvents(); }
     void Window::clear() const { glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); }
