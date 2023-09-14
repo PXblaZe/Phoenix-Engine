@@ -2,6 +2,7 @@
 #if defined(_WIN32) || defined(_WIN64)
 
 #include <stdio.h>
+#include <errno.h>
 #include <stdlib.h>
 
     
@@ -22,7 +23,7 @@ ssize_t getline(char **lineptr, size_t *n, FILE *stream) {
     }
 
     size_t pos = 0;
-    while (1) {
+    for(;;) {
         size_t bytes_read = fread(*lineptr + pos, 1, *n - pos, stream);
         if (bytes_read == 0) {
             if (pos == 0) {
