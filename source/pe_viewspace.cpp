@@ -1,3 +1,4 @@
+#include <glm/trigonometric.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "PXE/pe_viewspace.hpp"
@@ -13,7 +14,7 @@ namespace px
         updateOrientation();
     }
 
-    const glm::mat4& Viewspace::getViewMatrix() const
+    const glm::mat4 Viewspace::getViewMatrix() const
     {
         return glm::lookAt(position, position+front, up);
     }
@@ -24,9 +25,9 @@ namespace px
 
         // Calculate new front vector
         glm::vec3 newFront;
-        newFront.x = cos(yaw) * cos(pitch);
-        newFront.y = sin(pitch);
-        newFront.z = sin(yaw) * cos(pitch);
+        newFront.x = glm::cos(yaw) * glm::cos(pitch);
+        newFront.y = glm::sin(pitch);
+        newFront.z = glm::sin(yaw) * glm::cos(pitch);
         front = glm::normalize(newFront);
 
         // Calculate new right and up vectors
@@ -34,8 +35,8 @@ namespace px
         up = glm::normalize(glm::cross(right, front));
 
         // Precalculate roll rotation matrix elements
-        float cosRoll = cos(roll);
-        float sinRoll = sin(roll);
+        float cosRoll = glm::cos(roll);
+        float sinRoll = glm::sin(roll);
 
         // Apply roll rotation to up and right vectors
         glm::vec3 newUp = up * cosRoll - right * sinRoll;

@@ -29,7 +29,7 @@ class Viewspace {
 
     inline void setRoll(float radians) noexcept { rotation.z = radians; }
 
-    const glm::mat4& getViewMatrix() const;
+    const glm::mat4 getViewMatrix() const;
 
     inline const glm::vec3& getPosition() const noexcept { return position; }
 
