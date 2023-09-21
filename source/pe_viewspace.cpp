@@ -14,7 +14,7 @@ namespace px
         updateOrientation();
     }
 
-    const glm::mat4 Viewspace::getViewMatrix() const
+    const glm::mat4 Viewspace::getViewMatrix() const noexcept
     {
         return glm::lookAt(position, position+front, up);
     }
