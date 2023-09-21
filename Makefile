@@ -20,7 +20,7 @@ build: ${SDir}/*
 	for file in ${PWD}/${SDir}/* ; do \
 		filename="$${file##*/}" ; \
 		echo "Compiling $${file} file..." ; \
-		g++ -fPIC -c $${file} -I${PWD}/include/ ; \
+		g++ -std=c++2b -std=gnu++2b -fPIC -Wno-int-to-pointer-cast -c $${file} -I${PWD}/include/ ; \
 		if [ -f "$${filename%.*}.o" ]; then \
 			CURRENT=$$(($${CURRENT}+1)) ; \
 			PERCENT=$$(($${CURRENT}*100/$${TOTAL})) ; \
