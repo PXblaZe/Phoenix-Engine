@@ -11,9 +11,11 @@ class Viewspace {
 
     public:
 
-    float movement_speed = 1.f;
+    float turn_speed = 0.1f;
+    glm::vec3 movement_velocity = glm::vec3(1.f);
 
-    Viewspace(const glm::vec3& position, const glm::vec3& rotationAngles = {0, 0, 0}, const glm::vec3& worldUp = {0, 1, 0});
+
+    Viewspace(const glm::vec3& position, const glm::vec3& rotation = glm::vec3(0.f), const glm::vec3& worldUp = {0, 1, 0});
 
     void updateOrientation();
 
@@ -50,6 +52,10 @@ class Viewspace {
     inline const float& getYaw() const noexcept { return rotation.y; } 
 
     inline const float& getRoll() const noexcept { return rotation.z; }
+
+    void xyzShift(double fx = .0, double fy = .0, double fz = .0);
+
+    void mouseControl(double xChange, double yChange);
 
 };
 

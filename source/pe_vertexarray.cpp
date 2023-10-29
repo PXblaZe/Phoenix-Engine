@@ -2,13 +2,18 @@
 #include "PXE/pe_init.hpp"
 #include "PXE/pe_vertexarray.hpp"
 
+
 namespace px
 {
     
     VertexArray::VertexArray() 
     {
+    #if defined(GL_VERSION_3_0) || defined(GL_ES_VERSION_3_0)
         glGenVertexArrays(1, &vaoID);
         glBindVertexArray(vaoID);
+    #else
+        this->vaoID = 0;
+    #endif
     }
 
     VertexArray::~VertexArray() { glDeleteVertexArrays(1, &vaoID); }

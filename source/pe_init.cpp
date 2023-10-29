@@ -3,6 +3,7 @@
 #include <iostream>
 
 #include "PXE/pe_init.hpp"
+#include "PXE/__pe_win32.hpp"
 
 const char* to_hex(unsigned int num)
 {

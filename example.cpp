@@ -39,7 +39,7 @@ int main() {
     px::ElementBuffer ibo((char)0, 1, 2, 2, 3, 0);
     std::cout << to_hex(ibo.draw_callType()) << std::endl;
 
-    px::ShaderCode sc("testShader.glsl");
+    px::ShaderCode sc("example.glsl");
     px::ShaderProgram sp;
     sp.createProgram(sc.parseCode("ver"), sc.parseCode("frag"));
 
@@ -65,7 +65,9 @@ int main() {
     sp.cleanShaders(px::ShaderProgram::FRAGMENT_SHADER | px::ShaderProgram::VERTEX_SHADER);
     // std::cout << "vsID: " << sp.getShaderID(px::ShaderProgram::VERTEX_SHADER) << std::endl;
     // std::cout << "fsID: " << sp.getShaderID(px::ShaderProgram::FRAGMENT_SHADER) << std::endl;
-    win.run<const px::VertexArray&, const px::ElementBuffer&>(rcb, vao, ibo);
+    // win.run<const px::VertexArray&, const px::ElementBuffer&>(rcb, vao, ibo);
+
+    win.run([&](double dt) { rcb(vao, ibo); });
 
     return 0;
 }

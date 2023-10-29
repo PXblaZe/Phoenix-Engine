@@ -3,9 +3,7 @@
 #include <omp.h>
 #include <csignal>
 
-#if defined(__ARM_ARCH_6__) || defined(__RASPBERRYPI__)
-    #include <GLES2/gl2.h>
-#elif defined(__APPLE__)
+#if defined(__APPLE__)
     #include <OpenGL/gl.h>
 #elif defined(__ANDROID__) || defined(ANDROID)
     #include <GLES3/gl32.h>

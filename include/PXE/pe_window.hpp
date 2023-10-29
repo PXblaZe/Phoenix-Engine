@@ -2,20 +2,10 @@
 
 #include <functional>
 
+#include "PXE/pe_events.hpp"
 #include "PXE/pe_viewspace.hpp"
 
 namespace px {
-
-    struct MouseEvent {
-        bool isCursorEntered;
-        double x, y;
-        int button, action, mods;
-    };
-
-    struct KeyboardEvent {
-        int key, scancode, action, mods;
-        char key_action_record[349] = {};
-    };
 
     class Window {
 
@@ -23,23 +13,18 @@ namespace px {
 
         GLFWwindow* window;
 
-        typedef std::function<void()> RendererCallback;
+        typedef std::function<void(double)> RendererCallback;
 
         static void wscall(GLFWwindow* win, int w, int h);
         static void fbscall(GLFWwindow* win, int width, int height);
-        static void cpcall(GLFWwindow* win, double x, double y);
-        static void cecall(GLFWwindow* win, int ent);
-        static void mbcall(GLFWwindow* win, int button, int action, int mods);
-        static void kbcall(GLFWwindow* win, int key, int scancode, int action, int mods);
 
     public:
 
         const char* const title;
         const int height, width;
-        bool read_mouse_inputs = false, read_keyboard_inputs = false;
 
-        MouseEvent mouse_input;
-        KeyboardEvent keyboard_input;
+        Mouse mouse_input;
+        Keyboard keyboard_input;
 
         Window(int width, int height, const char* title);
         Window(const char* title, bool windowed = true);
@@ -58,6 +43,7 @@ namespace px {
 
         Window(const Window&) = delete;
         Window operator=(const Window&) = delete;
+
     };
 
-}
+}   

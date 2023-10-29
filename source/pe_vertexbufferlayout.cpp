@@ -77,4 +77,39 @@ namespace px {
         this->stride += sizeof(GLtype<unsigned short>::type)*count;
     }
 
+
+
+    void VertexBufferLayout::va_pushf(unsigned int count, const char* vaname, bool normalized)
+    {
+        
+    }
+    void VertexBufferLayout::va_pushd(unsigned int count, const char* vaname, bool normalized)
+    {
+        
+    }
+    void VertexBufferLayout::va_pushb(unsigned int count, const char* vaname, bool normalized)
+    {
+        
+    }
+    void VertexBufferLayout::va_pushub(unsigned int count, const char* vaname, bool normalized)
+    {
+        
+    }
+    void VertexBufferLayout::va_pushi(unsigned int count, const char* vaname, bool normalized)
+    {
+        
+    }
+    void VertexBufferLayout::va_pushui(unsigned int count, const char* vaname, bool normalized)
+    {
+        
+    }
+    void VertexBufferLayout::va_pushs(unsigned int count, const char* vaname, bool normalized)
+    {
+        
+    }
+    void VertexBufferLayout::va_pushus(unsigned int count, const char* vaname, bool normalized)
+    {
+        
+    }
+
 } // namespace px 

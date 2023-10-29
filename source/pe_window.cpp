@@ -1,9 +1,17 @@
 #include <string>
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <cstdlib>
 #include <stdexcept>
 
 #include "PXE/pe_init.hpp"
 #include "PXE/pe_window.hpp"
+#include "PXE/__pe_win32.hpp"
 
+#if defined(_WIN32) || defined(_WIN64)
+    #define hot likely
+#endif
 
 namespace px {
     
@@ -17,14 +25,13 @@ namespace px {
         }
         glfwMakeContextCurrent(this->window);
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-        // glfwSetInputMode(window, GLFW_CURSOR, );
         
         glfwSetWindowSizeCallback(window, wscall);
         glfwSetFramebufferSizeCallback(window, fbscall);
-        glfwSetCursorPosCallback(window, cpcall);
-        glfwSetCursorEnterCallback(window, cecall);
-        glfwSetMouseButtonCallback(window, mbcall);
-        glfwSetKeyCallback(window, kbcall);
+        glfwSetCursorPosCallback(window, Mouse::cpcall);
+        glfwSetCursorEnterCallback(window, Mouse::cecall);
+        glfwSetMouseButtonCallback(window, Mouse::mbcall);
+        glfwSetKeyCallback(window, Keyboard::kbcall);
 
         #ifdef GLEW_VERSION
             if (glewInit() != GLEW_OK) {
@@ -67,10 +74,12 @@ namespace px {
         glfwMakeContextCurrent(this->window);
         glViewport(0, 0, width, height);
 
-        glfwSetCursorPosCallback(window, cpcall);
-        glfwSetCursorEnterCallback(window, cecall);
-        glfwSetMouseButtonCallback(window, mbcall);
-        glfwSetKeyCallback(window, kbcall);
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+        glfwSetCursorPosCallback(window, Mouse::cpcall);
+        glfwSetCursorEnterCallback(window, Mouse::cecall);
+        glfwSetMouseButtonCallback(window, Mouse::mbcall);
+        glfwSetKeyCallback(window, Keyboard::kbcall);
 
         #ifdef GLEW_VERSION
             if (glewInit() != GLEW_OK) {
@@ -94,26 +103,56 @@ namespace px {
 
     void Window::run(RendererCallback callback)
     {
-        while (!this->shouldClose()) [[likely]] {
+
+        #if defined(__linux__) || defined(__unix__)
+        
+        FILE* pipe  = popen("gsettings get org.gnome.desktop.peripherals.touchpad disable-while-typing", "r");
+        char val[6];
+
+        if (pipe && fgets(val, 6, pipe) && !memcmp(val, "true", 4)) 
+        {
+            system("gsettings set org.gnome.desktop.peripherals.touchpad disable-while-typing false");
+        }
+
+        pclose(pipe);
+
+        #endif
+
+        try {
+            double lastFrameTime, deltaTime, currentFrameTime;
+            lastFrameTime = deltaTime = .0;
             
             #pragma omp parallel
-            {
+            while (!this->shouldClose()) [[hot]] {
+
+                #pragma omp atomic update
+                {
+                currentFrameTime = glfwGetTime();
+                deltaTime = currentFrameTime - lastFrameTime;
+                lastFrameTime = currentFrameTime;
+                }
                 
                 this->clear();
                 // Draw call
-                #pragma omp critical
-                {
-                // read_mouse_inputs = !read_mouse_inputs;
-                // read_keyboard_inputs = !read_keyboard_inputs;
-                [[likely]] callback();
-                }
+                [[hot]] callback(deltaTime);
+
+                this->swapBuffers();
+                this->pollEvents();
                 
             }
-            this->swapBuffers();
-            this->pollEvents();
-        }
+            
+            glfwTerminate();
 
-        glfwTerminate();
+        } catch (std::exception& e) {}
+    
+    
+        #if defined(__linux__) || defined(__unix__)
+
+        if (!memcmp(val, "false", 5)) return;
+
+        system("gsettings set org.gnome.desktop.peripherals.touchpad disable-while-typing true");
+
+        #endif
     }
 
     void Window::setVsync(bool value) const { glfwSwapInterval(value); }
@@ -135,31 +174,8 @@ namespace px {
         *(int*)&uw->width = width, *(int*)&uw->height = height;
     }
 
-    void Window::cpcall(GLFWwindow* win, double x, double y) {
-        Window* window = static_cast<Window*>(glfwGetWindowUserPointer(win));
-        if (!window->read_mouse_inputs) return;
-        window->mouse_input.x = x, window->mouse_input.y = y;
-    }
-
-    void Window::cecall(GLFWwindow* win, int ent) {
-        Window* window = static_cast<Window*>(glfwGetWindowUserPointer(win));return;
-        window->mouse_input.isCursorEntered = ent ? true: false;
-    }
-
-    void Window::mbcall(GLFWwindow* win, int button, int action, int mods) {
-        Window* window = static_cast<Window*>(glfwGetWindowUserPointer(win));
-        if (!window->read_mouse_inputs) return;
-        window->mouse_input.button = button, window->mouse_input.action = action, window->mouse_input.mods = mods;
-    }
-
-    void Window::kbcall(GLFWwindow* win, int key, int scancode, int action, int mods) {
-        Window* window = static_cast<Window*>(glfwGetWindowUserPointer(win));
-        if (!window->read_keyboard_inputs) return;
-        window->keyboard_input.key = key;
-        window->keyboard_input.scancode = scancode;
-        window->keyboard_input.action = action;
-        window->keyboard_input.mods = mods;
-        window->keyboard_input.key_action_record[key] = action;
-    }
-
 } // namespace px
+
+#ifdef hot
+    #undef hot
+#endif

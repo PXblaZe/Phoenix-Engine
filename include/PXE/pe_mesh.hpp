@@ -3,6 +3,16 @@
 namespace px
 {
     
-    class Mesh {};
+class Mesh  {
+
+
+
+public:
+
+    Mesh();
+    Mesh(const char* filename);
+    ~Mesh();
+
+};
 
 } // namespace px

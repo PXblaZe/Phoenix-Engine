@@ -68,7 +68,7 @@ class ShaderProgram {
     { 
         First* pData = (First*)malloc(v*n*sizeof(First));
         size_t i = 1; pData[0] = first;
-        ((pData[i++] = args), ...);
+        ((pData[i++] = static_cast<First>(args)), ...);
         return pData;
     }    
 

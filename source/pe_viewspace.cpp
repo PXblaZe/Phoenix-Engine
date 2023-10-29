@@ -1,17 +1,16 @@
 #include <glm/trigonometric.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+#include "PXE/pe_events.hpp"
 #include "PXE/pe_viewspace.hpp"
 
 namespace px
 {
     
-    Viewspace::Viewspace(const glm::vec3& position, const glm::vec3& rotationAngles, const glm::vec3& worldUp)
-    : front(glm::vec3(0, 0, -1)) {
-        this->position = position;
-        this->worldUp = worldUp;
-        rotation = rotationAngles;
+    Viewspace::Viewspace(const glm::vec3& position, const glm::vec3& rotation, const glm::vec3& worldUp)
+    : position(position), worldUp(worldUp), rotation(rotation) {
         updateOrientation();
+        
     }
 
     const glm::mat4 Viewspace::getViewMatrix() const noexcept
@@ -45,6 +44,36 @@ namespace px
         up = newUp;
         right = newRight;
     }
+
+    // void Viewspace::xyzShift(double fx, double fy, double fz)
+    // {
+    //     if (!cs) cx = fx, cy = fy, cz = fz, cs = true;
+
+    //     if (fx!=cx) this->setYaw(this->getYaw() + 2*glm::pi<float>()*(fx-cx));
+    //     if (fy!=cy) this->setPitch(this->getPitch() + 2*glm::pi<float>()*(fy-cy));
+    //     if (fz!=cz) this->setRoll(this->getRoll() + 2*glm::pi<float>()*(fz-cz));
+
+    //     if (glm::degrees(this->getPitch()) > 89.f) this->setPitch(glm::radians(89.f)), cs = false;
+    //     else if (glm::degrees(this->getPitch()) < -89.f) this->setPitch(glm::radians(-89.f)), cs = false;
+
+    //     this->updateOrientation(), cx = fx, cy = fy, cz = fz;
+    // }
+
+    void Viewspace::mouseControl(double xChange, double yChange)
+    {    
+        
+        xChange *= turn_speed;
+        yChange *= turn_speed;
+
+        rotation.y += glm::radians(xChange);
+        rotation.x += glm::radians(yChange);
+
+        if(glm::degrees(rotation.x) > 89.0f) rotation.x = glm::radians(89.0f);
+        if(glm::degrees(rotation.x) < -89.0f) rotation.x = glm::radians(-89.0f);
+
+        this->updateOrientation();
+    }
+
 
 } // namespace px
  

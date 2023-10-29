@@ -5,6 +5,8 @@
 #include <errno.h>
 #include <stdlib.h>
 
+#include "PXE/__pe_win32.hpp"
+
     
 ssize_t getline(char **lineptr, size_t *n, FILE *stream) {
     if (lineptr == NULL || n == NULL || stream == NULL) {
