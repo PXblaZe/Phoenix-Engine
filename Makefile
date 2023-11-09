@@ -20,7 +20,7 @@ build: ${SDir}/*
 	for file in ${PWD}/${SDir}/* ; do \
 		filename="$${file##*/}" ; \
 		echo "Compiling $${file} file..." ; \
-		g++ -std=c++2a -std=gnu++2a -fPIC -Wno-int-to-pointer-cast -c $${file} -I${PWD}/include/ ; \
+		g++ -std=c++2a -std=gnu++2a -fPIC -Wno-int-to-pointer-cast -Wno-unused-result -Wno-write-strings -c $${file} -I${PWD}/include/ ; \
 		if [ -f "$${filename%.*}.o" ]; then \
 			CURRENT=$$(($${CURRENT}+1)) ; \
 			PERCENT=$$(($${CURRENT}*100/$${TOTAL})) ; \

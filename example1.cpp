@@ -11,8 +11,7 @@
 
 
 int main() {
-
-    px::Window window(1280, 768, "Phoenix Engine");
+    px::Window window(1280, 710, "Phoenix Engine");
     // px::Window window("Test");
     window.mouse_input.read_events = true;
     window.keyboard_input.read_events = true;
@@ -33,29 +32,29 @@ int main() {
 // 0.4392, 0.3294, 0.2431,
 
 
-    // float flpos[] = {
-    //     -1, -1, -1,       0.4392, 0.3294, 0.2431, 
-    //      1, -1, -1,       0.4392, 0.3294, 0.2431,
-    //      1, -1,  1,       0.4392, 0.3294, 0.2431,
-    //     -1, -1,  1,       0.4392, 0.3294, 0.2431,
-        
-    //     -1, -1.2, -1,       .5, .5, .5, 
-    //      1, -1.2, -1,       .5, .5, .5,
-    //      1, -1.2,  1,       .5, .5, .5,
-    //     -1, -1.2,  1,       .5, .5, .5
-    // };
-
     float flpos[] = {
-        -1, -1, -1,       1, 1, 1, 
-         1, -1, -1,       1, 1, 1,
-         1, -1,  1,       1, 1, 1,
-        -1, -1,  1,       1, 1, 1,
+        -1, -1, -1,       0.4392, 0.3294, 0.2431, 
+         1, -1, -1,       0.4392, 0.3294, 0.2431,
+         1, -1,  1,       0.4392, 0.3294, 0.2431,
+        -1, -1,  1,       0.4392, 0.3294, 0.2431,
         
         -1, -1.2, -1,       .5, .5, .5, 
          1, -1.2, -1,       .5, .5, .5,
          1, -1.2,  1,       .5, .5, .5,
         -1, -1.2,  1,       .5, .5, .5
     };
+
+    // float flpos[] = {
+    //     -1, -1, -1,       1, 1, 1, 
+    //      1, -1, -1,       1, 1, 1,
+    //      1, -1,  1,       1, 1, 1,
+    //     -1, -1,  1,       1, 1, 1,
+        
+    //     -1, -1.2, -1,       .5, .5, .5, 
+    //      1, -1.2, -1,       .5, .5, .5,
+    //      1, -1.2,  1,       .5, .5, .5,
+    //     -1, -1.2,  1,       .5, .5, .5
+    // };
 
     px::VertexArray vao;
 
@@ -97,7 +96,7 @@ int main() {
     px::ShaderProgram p;
     p.createProgram(sc.parseCode("v"), sc.parseCode("f"));
     p.use();
-
+    
     
     px::Viewspace camera(glm::vec3(0, 0, -3), {glm::radians(-10.f), glm::radians(90.f), .0});
 
@@ -137,61 +136,63 @@ int main() {
     glCullFace(GL_FRONT);
     // glFrontFace(GL_CW);
     glFrontFace(GL_CCW);
-
+    // window.setVsync(true);
     // camera.turn_speed = .001;
-    window.run(
-        [&](double deltaTime) {
+    std::cout << window.title << '\n';
+    window.setTitle("Fucker Jawan");
+    std::cout << window.title << '\n';
 
-            // #pragma omp parallel 
-            std::cout << "\033[H\033[J" << deltaTime << std::endl;
+    // window.run(
+    //     [&](double deltaTime, double fps) {
 
-            // camera.xyzShift(window.mouse_input.events.x/window.width, -window.mouse_input.events.y/window.height); 
-            camera.mouseControl(window.mouse_input.getXChange(), window.mouse_input.getYChange());
-    
+    //         // std::cout << "\033[H\033[J" << fps << '\t' << deltaTime << std::endl;
+
+    //         camera.mouseControl(window.mouse_input.getXChange(), window.mouse_input.getYChange());            
+
+    //         if (window.keyboard_input.events.key_action_record[px::Keyboard::KEY_LEFT_SHIFT]) camera.movement_velocity = glm::vec3(3);
+    //         if (window.keyboard_input.events.key_action_record[px::Keyboard::KEY_W]) camera.setPosition(camera.getPosition() + camera.getFrontVector()*camera.movement_velocity*float(deltaTime));
+    //         if (window.keyboard_input.events.key_action_record[px::Keyboard::KEY_A]) camera.setPosition(camera.getPosition() - camera.getRightVector()*camera.movement_velocity*float(deltaTime));
+    //         if (window.keyboard_input.events.key_action_record[px::Keyboard::KEY_S]) camera.setPosition(camera.getPosition() - camera.getFrontVector()*camera.movement_velocity*float(deltaTime));
+    //         if (window.keyboard_input.events.key_action_record[px::Keyboard::KEY_D]) camera.setPosition(camera.getPosition() + camera.getRightVector()*camera.movement_velocity*float(deltaTime));
+    //         if (window.keyboard_input.events.action == px::Action::PRESS && window.keyboard_input.events.key == px::Keyboard::KEY_ESCAPE) window.closeWindow();
+    //         if (window.keyboard_input.events.key_action_record[px::Keyboard::KEY_Q]) camera.setPosition(camera.getPosition() - camera.getUpVector()*camera.movement_velocity*float(deltaTime));
+    //         if (window.keyboard_input.events.key_action_record[px::Keyboard::KEY_E]) camera.setPosition(camera.getPosition() + camera.getUpVector()*camera.movement_velocity*float(deltaTime));
+    //         if (!window.keyboard_input.events.key_action_record[px::Keyboard::KEY_LEFT_SHIFT]) camera.movement_velocity = glm::vec3(1);
+
+    //         p.use();
+    //         p.setUniformMat<4, 4>("view", glm::value_ptr(camera.getViewMatrix()));
             
-
-            if (window.keyboard_input.events.key_action_record[px::Keyboard::KEY_LEFT_SHIFT]) camera.movement_velocity = glm::vec3(3);
-            if (window.keyboard_input.events.key_action_record[px::Keyboard::KEY_W]) camera.setPosition(camera.getPosition() + camera.getFrontVector()*camera.movement_velocity*float(deltaTime));
-            if (window.keyboard_input.events.key_action_record[px::Keyboard::KEY_A]) camera.setPosition(camera.getPosition() - camera.getRightVector()*camera.movement_velocity*float(deltaTime));
-            if (window.keyboard_input.events.key_action_record[px::Keyboard::KEY_S]) camera.setPosition(camera.getPosition() - camera.getFrontVector()*camera.movement_velocity*float(deltaTime));
-            if (window.keyboard_input.events.key_action_record[px::Keyboard::KEY_D]) camera.setPosition(camera.getPosition() + camera.getRightVector()*camera.movement_velocity*float(deltaTime));
-            if (window.keyboard_input.events.action == px::Action::PRESS && window.keyboard_input.events.key == px::Keyboard::KEY_ESCAPE) window.closeWindow();
-            if (window.keyboard_input.events.key_action_record[px::Keyboard::KEY_Q]) camera.setPosition(camera.getPosition() - camera.getUpVector()*camera.movement_velocity*float(deltaTime));
-            if (window.keyboard_input.events.key_action_record[px::Keyboard::KEY_E]) camera.setPosition(camera.getPosition() + camera.getUpVector()*camera.movement_velocity*float(deltaTime));
-            if (!window.keyboard_input.events.key_action_record[px::Keyboard::KEY_LEFT_SHIFT]) camera.movement_velocity = glm::vec3(1);
-
-            p.use();
-            p.setUniformMat<4, 4>("view", glm::value_ptr(camera.getViewMatrix()));
+    //         vao1.bind(), ibo1.bind();
+    //         glDrawElements(GL_TRIANGLES, ibo1.elementCount(), ibo1.draw_callType(), nullptr);
             
-            vao1.bind(), ibo1.bind();
-            glDrawElements(GL_TRIANGLES, ibo1.elementCount(), ibo1.draw_callType(), nullptr);
+    //         vao.bind(), ibo.bind();
+    //         glEnable(GL_BLEND);
+    //         // glEnable(GL_CULL_FACE);
+    //         glDrawElements(GL_TRIANGLES, ibo.elementCount(), ibo.draw_callType(), nullptr);
+    //         // glDisable(GL_CULL_FACE);
+    //         glDisable(GL_BLEND);
+    //         px::VertexArray::unbind(), px::ElementBuffer::unbind(), px::ShaderProgram::idle();
             
-            vao.bind(), ibo.bind();
-            glEnable(GL_BLEND);
-            // glEnable(GL_CULL_FACE);
-            glDrawElements(GL_TRIANGLES, ibo.elementCount(), ibo.draw_callType(), nullptr);
-            // glDisable(GL_CULL_FACE);
-            glDisable(GL_BLEND);
-            px::VertexArray::unbind(), px::ElementBuffer::unbind(), px::ShaderProgram::idle();
-
-            // std::cout << "\033[H\033[J[ pos: (" << camera.getPosition().x << ", " << camera.getPosition().y << ", " << camera.getPosition().z << "), front: (" << camera.getFrontVector().x << ", " << camera.getFrontVector().y << ", " << camera.getFrontVector().z << "), Up: (" << camera.getUpVector().x << ", " << camera.getUpVector().y << ", " << camera.getUpVector().z << "), Pitch: " << glm::degrees(camera.getPitch()) << "°, Yaw: " << glm::degrees(camera.getYaw()) << "°, Roll: " << glm::degrees(camera.getRoll()) << "°\n";
-            // [[hot]] for (int i = 0; i < camera.getViewMatrix().length(); i++)
-            // {
-            //     std::cout << "\t[";
-            //     [[hot]] for (int j = 0; j < camera.getViewMatrix()[i].length()-1; j++)
-            //     {
-            //         std::cout << ( (10 > std::to_string(camera.getViewMatrix()[i][j]).length()) ? std::string(10-std::to_string(camera.getViewMatrix()[i][j]).length(), ' ') : "") + std::to_string(camera.getViewMatrix()[i][j]) << ", ";  
-            //     }
-            //     std::cout << std::to_string(camera.getViewMatrix()[i][camera.getViewMatrix()[i].length()-1]) << " ]" << std::endl;
-            // }
-            // std::cout << "]\n";
-            // std::cout << window.keyboard_input.events.action << '\t' << window.keyboard_input.events.key << '\t' << (int)window.keyboard_input.events.key_action_record[window.keyboard_input.events.key] << std::endl;
-            // std::cout << window.mouse_input.events.x << '\t' << window.mouse_input.events.y << '\t' << cx << '\t' << cy << std::endl;
-            // std::cout << window.mouse_input.events.x - cx << '\t' << window.mouse_input.events.y - cy << std::endl;
+    //         if (window.keyboard_input.events.action == px::Action::PRESS && window.keyboard_input.events.key == px::Keyboard::KEY_F) std::cout << "Angle: " << camera.getYaw() << std::endl;
             
-            if (window.keyboard_input.events.action == px::Action::PRESS && window.keyboard_input.events.key == px::Keyboard::KEY_F) std::cout << "Angle: " << camera.getYaw() << std::endl;
-        }
-    );
+    //     }
+    // );
 
     return 0;
 }
+
+
+// std::cout << "\033[H\033[J[ pos: (" << camera.getPosition().x << ", " << camera.getPosition().y << ", " << camera.getPosition().z << "), front: (" << camera.getFrontVector().x << ", " << camera.getFrontVector().y << ", " << camera.getFrontVector().z << "), Up: (" << camera.getUpVector().x << ", " << camera.getUpVector().y << ", " << camera.getUpVector().z << "), Pitch: " << glm::degrees(camera.getPitch()) << "°, Yaw: " << glm::degrees(camera.getYaw()) << "°, Roll: " << glm::degrees(camera.getRoll()) << "°\n";
+// [[hot]] for (int i = 0; i < camera.getViewMatrix().length(); i++)
+// {
+//     std::cout << "\t[";
+//     [[hot]] for (int j = 0; j < camera.getViewMatrix()[i].length()-1; j++)
+//     {
+//         std::cout << ( (10 > std::to_string(camera.getViewMatrix()[i][j]).length()) ? std::string(10-std::to_string(camera.getViewMatrix()[i][j]).length(), ' ') : "") + std::to_string(camera.getViewMatrix()[i][j]) << ", ";  
+//     }
+//     std::cout << std::to_string(camera.getViewMatrix()[i][camera.getViewMatrix()[i].length()-1]) << " ]" << std::endl;
+// }
+// std::cout << "]\n";
+// std::cout << window.keyboard_input.events.action << '\t' << window.keyboard_input.events.key << '\t' << (int)window.keyboard_input.events.key_action_record[window.keyboard_input.events.key] << std::endl;
+// std::cout << window.mouse_input.events.x << '\t' << window.mouse_input.events.y << '\t' << cx << '\t' << cy << std::endl;
+// std::cout << window.mouse_input.events.x - cx << '\t' << window.mouse_input.events.y - cy << std::endl;

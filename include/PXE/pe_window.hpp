@@ -13,7 +13,7 @@ namespace px {
 
         GLFWwindow* window;
 
-        typedef std::function<void(double)> RendererCallback;
+        typedef std::function<void(double, double)> RendererCallback;
 
         static void wscall(GLFWwindow* win, int w, int h);
         static void fbscall(GLFWwindow* win, int width, int height);
@@ -40,6 +40,7 @@ namespace px {
         void setVsync(bool value) const;
         int shouldClose() const;
         void closeWindow() const;
+        void setTitle(const char* title) const;
 
         Window(const Window&) = delete;
         Window operator=(const Window&) = delete;

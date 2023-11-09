@@ -53,8 +53,6 @@ class Viewspace {
 
     inline const float& getRoll() const noexcept { return rotation.z; }
 
-    void xyzShift(double fx = .0, double fy = .0, double fz = .0);
-
     void mouseControl(double xChange, double yChange);
 
 };

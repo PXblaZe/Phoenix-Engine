@@ -45,20 +45,6 @@ namespace px
         right = newRight;
     }
 
-    // void Viewspace::xyzShift(double fx, double fy, double fz)
-    // {
-    //     if (!cs) cx = fx, cy = fy, cz = fz, cs = true;
-
-    //     if (fx!=cx) this->setYaw(this->getYaw() + 2*glm::pi<float>()*(fx-cx));
-    //     if (fy!=cy) this->setPitch(this->getPitch() + 2*glm::pi<float>()*(fy-cy));
-    //     if (fz!=cz) this->setRoll(this->getRoll() + 2*glm::pi<float>()*(fz-cz));
-
-    //     if (glm::degrees(this->getPitch()) > 89.f) this->setPitch(glm::radians(89.f)), cs = false;
-    //     else if (glm::degrees(this->getPitch()) < -89.f) this->setPitch(glm::radians(-89.f)), cs = false;
-
-    //     this->updateOrientation(), cx = fx, cy = fy, cz = fz;
-    // }
-
     void Viewspace::mouseControl(double xChange, double yChange)
     {    
         

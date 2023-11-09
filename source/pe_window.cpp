@@ -1,8 +1,8 @@
 #include <string>
-#include <string.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <cstdlib>
+#include <string.h>
+#include <stdlib.h>
 #include <stdexcept>
 
 #include "PXE/pe_init.hpp"
@@ -46,6 +46,8 @@ namespace px {
         glEnable(GL_DEPTH_TEST);
         glfwSetWindowUserPointer(window, this);
 
+        glfwSetCursorPos(window, 0, 0);
+        
     }
 
     Window::Window(const char *title, bool windowed)
@@ -62,7 +64,6 @@ namespace px {
             throw std::runtime_error(std::string(std::to_string(__LINE__)+"| "+__FILE__+" error: unable to create a window.").c_str());
         }
 
-        glfwSetWindowPos(window, 0, 0);
 
         GLFWmonitor* monitor = glfwGetPrimaryMonitor();
         if (monitor == nullptr) throw std::runtime_error(std::string(std::to_string(__LINE__)+"| "+__FILE__+" error: unable to get primary monitor.").c_str());
@@ -75,6 +76,8 @@ namespace px {
         glViewport(0, 0, width, height);
 
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+        glfwSetWindowPos(window, 0, 0);
 
         glfwSetCursorPosCallback(window, Mouse::cpcall);
         glfwSetCursorEnterCallback(window, Mouse::cecall);
@@ -94,6 +97,8 @@ namespace px {
         glEnable(GL_DEPTH_TEST);
         glfwSetWindowUserPointer(window, this);
 
+        glfwSetCursorPos(window, 0, 0);
+        
     }
 
     Window::~Window() {
@@ -103,7 +108,8 @@ namespace px {
 
     void Window::run(RendererCallback callback)
     {
-
+        double xp, yp;
+        
         #if defined(__linux__) || defined(__unix__)
         
         FILE* pipe  = popen("gsettings get org.gnome.desktop.peripherals.touchpad disable-while-typing", "r");
@@ -119,22 +125,30 @@ namespace px {
         #endif
 
         try {
-            double lastFrameTime, deltaTime, currentFrameTime;
-            lastFrameTime = deltaTime = .0;
+            double lastFrameTime, deltaTime, currentFrameTime, one_secTime, frameCount, fps;
+            lastFrameTime = deltaTime = one_secTime = frameCount = .0;
             
             #pragma omp parallel
             while (!this->shouldClose()) [[hot]] {
 
+                glfwGetCursorPos(window, &xp, &yp);
+                // printf("Curpos: {%f, %f}\n", xp, yp);
+
                 #pragma omp atomic update
                 {
+                frameCount++;
                 currentFrameTime = glfwGetTime();
                 deltaTime = currentFrameTime - lastFrameTime;
                 lastFrameTime = currentFrameTime;
+                if (currentFrameTime - one_secTime >= 1.0){
+                    fps = frameCount, frameCount = .0;
+                    one_secTime = currentFrameTime;
+                }
                 }
                 
                 this->clear();
                 // Draw call
-                [[hot]] callback(deltaTime);
+                [[hot]] callback(deltaTime, fps);
 
                 this->swapBuffers();
                 this->pollEvents();
@@ -163,6 +177,10 @@ namespace px {
     void Window::clear() const { glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); }
     int Window::shouldClose() const { return glfwWindowShouldClose(this->window); }
     void Window::closeWindow() const { glfwSetWindowShouldClose(window, GLFW_TRUE); }
+    void Window::setTitle(const char* title) const { 
+        glfwSetWindowTitle(window, title);
+        *(decltype(&this->title)*)(&this->title) = *(decltype(&title)*)(&title); 
+    }
 
 
     void Window::wscall(GLFWwindow* win, int w, int h) {

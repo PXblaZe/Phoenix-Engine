@@ -8,3 +8,5 @@ build/
 libs/
 backup/
 ts?.glsl
+*.obj
+*.mtl

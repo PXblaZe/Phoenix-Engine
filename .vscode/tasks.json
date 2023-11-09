@@ -8,6 +8,7 @@
                 "-std=c++2a",
                 "-fdiagnostics-color=always",
                 "-Wno-conversion-null", "-Wno-pointer-arith",
+                // "-Ofast", "-march=native", "-frename-registers", "-funroll-loops",
                 "-g",
                 "${file}",
                 "libs/*",
