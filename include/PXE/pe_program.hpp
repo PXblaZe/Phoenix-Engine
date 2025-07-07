@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <string>
+#include <stdexcept>
 #include <type_traits>
 #include <unordered_map>
 

@@ -1,15 +1,17 @@
 #include <stack>
+#include <cstdio>
 #include <stdio.h>
 #include <string.h>
 #include <stdexcept>
 #include <algorithm>
+#include <filesystem>
 
 #include "PXE/pe_init.hpp"
 #include "PXE/pe_program.hpp"
 
 
 GLtype<unsigned int>::type cplShader(GLtype<unsigned int>::type type, const char* const GLScode, char* &message) {
-    GLtype<unsigned int>::type shid = PXcall(glCreateShader(type));
+    PXcall(GLtype<unsigned int>::type shid = glCreateShader(type));
     PXcall(glShaderSource(shid, 1, &GLScode, nullptr));
     PXcall(glCompileShader(shid));
 
@@ -30,54 +32,55 @@ GLtype<unsigned int>::type cplShader(GLtype<unsigned int>::type type, const char
 
 //    -- glGetUniformLocation() Wrappers --
 GLtype<int>::type locW(GLtype<unsigned int>::type a, const GLchar* p) {
-    return PXcall(glGetUniformLocation(a, p));
+    PXcall(GLtype<int>::type loc = glGetUniformLocation(a, p));
+    return loc;
 }
 
 //    -- glUniform*v() Wrappers --
 
 void uniiinW(int a, const signed int* b, unsigned char i, int n) {
-    if (i == 1) PXcall(glUniform1iv(a, n, b));
-    else if (i == 2) PXcall(glUniform2iv(a, n, b));
-    else if (i == 3) PXcall(glUniform3iv(a, n, b));
-    else if (i == 4) PXcall(glUniform4iv(a, n, b));
+    if (i == 1) {PXcall(glUniform1iv(a, n, b));}
+    else if (i == 2) {PXcall(glUniform2iv(a, n, b));}
+    else if (i == 3) {PXcall(glUniform3iv(a, n, b));}
+    else if (i == 4) {PXcall(glUniform4iv(a, n, b));}
 }
 
 void uniifnW(int a, const float* b, unsigned char i, int n) {
-    if (i == 1) PXcall(glUniform1fv(a, n, b));
-    else if (i == 2) PXcall(glUniform2fv(a, n, b));
-    else if (i == 3) PXcall(glUniform3fv(a, n, b));
-    else if (i == 4) PXcall(glUniform4fv(a, n, b));
+    if (i == 1) {PXcall(glUniform1fv(a, n, b));}
+    else if (i == 2) {PXcall(glUniform2fv(a, n, b));}
+    else if (i == 3) {PXcall(glUniform3fv(a, n, b));}
+    else if (i == 4) {PXcall(glUniform4fv(a, n, b));}
 }
 
 #if defined(GL_VERSION_3_0) || defined(GL_ES_VERSION_3_0)
 void uniiuinW(int a, const unsigned int* b, unsigned char i, int n) {
-    if (i == 1) PXcall(glUniform1uiv(a, n, b));
-    else if (i == 2) PXcall(glUniform2uiv(a, n, b));
-    else if (i == 3) PXcall(glUniform3uiv(a, n, b));
-    else if (i == 4) PXcall(glUniform4uiv(a, n, b));
+    if (i == 1) {PXcall(glUniform1uiv(a, n, b));}
+    else if (i == 2) {PXcall(glUniform2uiv(a, n, b));}
+    else if (i == 3) {PXcall(glUniform3uiv(a, n, b));}
+    else if (i == 4) {PXcall(glUniform4uiv(a, n, b));}
 }
 #endif
 
 #if defined(GL_VERSION_2_0) || defined(GL_ES_VERSION_3_0) || defined(GL_ARB_gpu_shader_fp64)
 void uniidnW(int a, const double* b, unsigned char i, int n) {
-    if (i == 1) PXcall(glUniform1dv(a, n, b));
-    else if (i == 2) PXcall(glUniform2dv(a, n, b));
-    else if (i == 3) PXcall(glUniform3dv(a, n, b));
-    else if (i == 4) PXcall(glUniform4dv(a, n, b));
+    if (i == 1) {PXcall(glUniform1dv(a, n, b));}
+    else if (i == 2) {PXcall(glUniform2dv(a, n, b));}
+    else if (i == 3) {PXcall(glUniform3dv(a, n, b));}
+    else if (i == 4) {PXcall(glUniform4dv(a, n, b));}
 }
 #endif
 
 void unimijfnW(int a, const float* b, unsigned char i, unsigned char j, int n, bool t) {
-    if (i == 2 && j == 2) PXcall(glUniformMatrix2fv(a, n, t ? GL_TRUE : GL_FALSE, b));
-    else if (i == 3 && j == 3) PXcall(glUniformMatrix3fv(a, n, t ? GL_TRUE : GL_FALSE, b));
-    else if (i == 4 && j == 4) PXcall(glUniformMatrix4fv(a, n, t ? GL_TRUE : GL_FALSE, b));
+    if (i == 2 && j == 2) {PXcall(glUniformMatrix2fv(a, n, t ? GL_TRUE : GL_FALSE, b));}
+    else if (i == 3 && j == 3) {PXcall(glUniformMatrix3fv(a, n, t ? GL_TRUE : GL_FALSE, b));}
+    else if (i == 4 && j == 4) {PXcall(glUniformMatrix4fv(a, n, t ? GL_TRUE : GL_FALSE, b));}
 #if defined(GL_VERSION_2_1) || defined(GL_ES_VERSION_3_1)
-    else if (i == 2 && j == 3) PXcall(glUniformMatrix2x3fv(a, n, t ? GL_TRUE : GL_FALSE, b));
-    else if (i == 2 && j == 4) PXcall(glUniformMatrix2x4fv(a, n, t ? GL_TRUE : GL_FALSE, b));
-    else if (i == 3 && j == 2) PXcall(glUniformMatrix3x2fv(a, n, t ? GL_TRUE : GL_FALSE, b));
-    else if (i == 3 && j == 4) PXcall(glUniformMatrix3x4fv(a, n, t ? GL_TRUE : GL_FALSE, b));
-    else if (i == 4 && j == 2) PXcall(glUniformMatrix4x2fv(a, n, t ? GL_TRUE : GL_FALSE, b));
-    else if (i == 4 && j == 3) PXcall(glUniformMatrix4x3fv(a, n, t ? GL_TRUE : GL_FALSE, b));
+    else if (i == 2 && j == 3) {PXcall(glUniformMatrix2x3fv(a, n, t ? GL_TRUE : GL_FALSE, b));}
+    else if (i == 2 && j == 4) {PXcall(glUniformMatrix2x4fv(a, n, t ? GL_TRUE : GL_FALSE, b));}
+    else if (i == 3 && j == 2) {PXcall(glUniformMatrix3x2fv(a, n, t ? GL_TRUE : GL_FALSE, b));}
+    else if (i == 3 && j == 4) {PXcall(glUniformMatrix3x4fv(a, n, t ? GL_TRUE : GL_FALSE, b));}
+    else if (i == 4 && j == 2) {PXcall(glUniformMatrix4x2fv(a, n, t ? GL_TRUE : GL_FALSE, b));}
+    else if (i == 4 && j == 3) {PXcall(glUniformMatrix4x3fv(a, n, t ? GL_TRUE : GL_FALSE, b));}
 #endif
 }
 
@@ -126,8 +129,10 @@ namespace px
 
                     char* tknn = strtok_r(nullptr, "=", &psv);
                     char* tknt = strtok_r(nullptr, "=", &psv);
-                    if (!memcmp(tknn, name, strlen(name)))  
+                    if (!memcmp(tknn, name, strlen(name))) {
+                        if (target) free(target), target = nullptr;
                         target = strdup(tknt);
+                    }
                     else if (!memcmp(tknn, shaderType, strlen(shaderType))) {
                         std::for_each(
                             tknt, tknt+strlen(tknt), 
@@ -155,18 +160,72 @@ namespace px
                 clen = 0;
             }
             else {
+                bool lineswitch = false;
                 size_t llen = strlen(line);
+                char* pragline = strstr(line, "#pragma"), *linetemp = nullptr;
+                if (pragline != nullptr)
+                {
+                    char* plsvp = nullptr, *include_path;
+                    pragline = strtok_r(pragline, " ", &plsvp);
+                    pragline = strtok_r(nullptr, " ", &plsvp);
+                    if (pragline == nullptr || strlen(pragline)!=18 || memcmp(pragline, "pxe_include_shader", 18)) 
+                        throw std::runtime_error(std::string("Error: Invalid pragma in file ") + filepath);
+                    include_path = strtok_r(nullptr, " ", &plsvp);
+                    if (include_path == nullptr || (*include_path != '<' && *include_path != '\"'))
+                        throw std::runtime_error(std::string("Error: Invalid path specification for pragma pxe_include_shader in file ") + filepath);
+                    plsvp--; if (*plsvp == '\0' || *plsvp == '\n') plsvp--;
+                    if ((*include_path == '<' && *plsvp != '>') || (*include_path == '\"' && *plsvp != '\"'))
+                        throw std::runtime_error(std::string("Error: Invalid path specification for pragma pxe_include_shader in file ") + filepath);
+                    *plsvp = '\0', include_path++;
+                    
+                    FILE* pINCPAT = fopen((std::filesystem::path(filepath).remove_filename()/include_path).string().c_str(), "r");
+                    if (pINCPAT == nullptr) {
+                        perror((std::string("Error: Invalid file path ") + include_path + " for pragma pxe_include_shader in file " + filepath).c_str());
+                        exit(1);
+                    }
+                    if (fseek(pINCPAT, 0, SEEK_END) != 0) {
+                        perror((std::string("Error: Failed in seeking to end of file ") + include_path + " for pragma pxe_include_shader in file " + filepath).c_str());
+                        fclose(pINCPAT);
+                        exit(1);
+                    }
+                    long szINCPAT = ftell(pINCPAT);
+                    if (-1L == szINCPAT)
+                    {
+                        perror((std::string("Error: Failed in getting file size of ") + include_path + " for pragma pxe_include_shader in file " + filepath).c_str());
+                        fclose(pINCPAT);
+                        exit(1);
+                    }
+                    char* dataINCPAT = static_cast<char*>(malloc(szINCPAT+2));
+                    if (dataINCPAT == nullptr) throw std::bad_alloc();
+                    rewind(pINCPAT);
+                    if (fread(dataINCPAT, 1, szINCPAT, pINCPAT) != szINCPAT) {
+                        perror((std::string("Error: Failed in reading fiie ") + include_path + " for pragma pxe_include_shader in file " + filepath).c_str());
+                        free(dataINCPAT);
+                        fclose(pINCPAT);
+                        exit(1);
+                    }
+                    linetemp = line;
+                    lineswitch = true;
+                    line = dataINCPAT;
+                    line[szINCPAT] = '\n', line[szINCPAT+1] = '\0';
+                    llen = static_cast<size_t>(szINCPAT+1);
+                    fclose(pINCPAT);
+                }
                 cstr = (char*) realloc(cstr, cstr == nullptr? llen+1: clen+llen+1);
                 if (cstr == nullptr) throw std::bad_alloc();
                 memcpy(cstr+clen, line, llen+1);
                 clen += llen;
                 cstr[clen] = '\0';
+                if (lineswitch) {
+                    free(line);
+                    line = linetemp;
+                }
             }
             
-
         }
         if (cstr != nullptr) this->shadermap.insert(std::make_pair<std::string, struct ShaderCode::ShaderFormat>(target, {tv, cstr}));
         free(line);
+        if (target) free(target);
         fclose(pshc);
     }
 
@@ -237,7 +296,7 @@ namespace px
             else throw std::runtime_error(std::string(std::to_string(__LINE__-2)+"| "+__FILE__+" error: failed to compile tessellation evaluation shader (type: 0x"+to_hex(GL_TESS_EVALUATION_SHADER)+")\n"+msg).c_str());
         }
 
-        for (int i = 0; i < 5; i++) if (this->curshaders[i]) PXcall(glAttachShader(this->programid, this->curshaders[i]));
+        for (int i = 0; i < 5; i++) if (this->curshaders[i]) {PXcall(glAttachShader(this->programid, this->curshaders[i]));}
 
         GLtype<int>::type status;
 
@@ -305,7 +364,7 @@ namespace px
 
     void ShaderProgram::getUniform(const char* name, signed int* data) const
     {
-        int loc = PXcall(glGetUniformLocation(this->programid, name));
+        PXcall(int loc = glGetUniformLocation(this->programid, name));
         if (loc == -1) {
             throw std::invalid_argument(std::string(std::to_string(__LINE__-4)+"| "+__FILE__+" error: uniform variable `name` not found in the shader program (programID: "+std::to_string(this->programid)+")\n").c_str());
         }
@@ -315,7 +374,7 @@ namespace px
 
     void ShaderProgram::getUniform(const char* name, unsigned int* data) const
     {
-        int loc = PXcall(glGetUniformLocation(this->programid, name));
+        PXcall(int loc = glGetUniformLocation(this->programid, name));
         if (loc == -1) {
             throw std::invalid_argument(std::string(std::to_string(__LINE__-4)+"| "+__FILE__+" error: uniform variable `name` not found in the shader program (programID: "+std::to_string(this->programid)+")\n").c_str());
         }
@@ -325,7 +384,7 @@ namespace px
 
     void ShaderProgram::getUniform(const char* name, float* data) const
     {
-        int loc = PXcall(glGetUniformLocation(this->programid, name));
+        PXcall(int loc = glGetUniformLocation(this->programid, name));
         if (loc == -1) {
             throw std::invalid_argument(std::string(std::to_string(__LINE__-4)+"| "+__FILE__+" error: uniform variable `name` not found in the shader program (programID: "+std::to_string(this->programid)+")\n").c_str());
         }
@@ -335,7 +394,7 @@ namespace px
 
     void ShaderProgram::getUniform(const char* name, double* data) const
     {
-        int loc = PXcall(glGetUniformLocation(this->programid, name));
+        PXcall(int loc = glGetUniformLocation(this->programid, name));
         if (loc == -1) {
             throw std::invalid_argument(std::string(std::to_string(__LINE__-4)+"| "+__FILE__+" error: uniform variable `name` not found in the shader program (programID: "+std::to_string(this->programid)+")\n").c_str());
         }
@@ -346,18 +405,18 @@ namespace px
     const std::vector<ShaderProgram::UniAttriFormat> ShaderProgram::getUniformsList() const
     {
         GLtype<int>::type count = 0;
-        glGetProgramiv(this->programid, GL_ACTIVE_UNIFORMS, &count);
+        PXcall(glGetProgramiv(this->programid, GL_ACTIVE_UNIFORMS, &count));
 
         std::vector<UniAttriFormat> list(count);
 
         GLtype<int>::type bufSize = 0; // maximum name length
-        glGetProgramiv(this->programid, GL_ACTIVE_UNIFORM_MAX_LENGTH, &bufSize), bufSize++;
+        PXcall(glGetProgramiv(this->programid, GL_ACTIVE_UNIFORM_MAX_LENGTH, &bufSize)); bufSize++;
 
         GLchar* name = (GLchar*)alloca(bufSize); // variable name in GLSL
 
         for (GLtype<unsigned int>::type i = 0; UniAttriFormat& fmt : list)
         {   
-            glGetActiveUniform(this->programid, i, bufSize, nullptr, &fmt.arrayLength, &fmt.type, name);
+            PXcall(glGetActiveUniform(this->programid, i, bufSize, nullptr, &fmt.arrayLength, &fmt.type, name));
             fmt.name = name, fmt.index = i++;
         }
 
@@ -367,18 +426,18 @@ namespace px
     const std::vector<ShaderProgram::UniAttriFormat> ShaderProgram::getAttributesList() const
     {
         GLtype<int>::type count = 0;
-        glGetProgramiv(this->programid, GL_ACTIVE_ATTRIBUTES, &count);
+        PXcall(glGetProgramiv(this->programid, GL_ACTIVE_ATTRIBUTES, &count));
 
         std::vector<UniAttriFormat> list(count);
 
         GLtype<int>::type bufSize = 0; // maximum name length
-        glGetProgramiv(this->programid, GL_ACTIVE_ATTRIBUTE_MAX_LENGTH, &bufSize), bufSize++;
+        PXcall(glGetProgramiv(this->programid, GL_ACTIVE_ATTRIBUTE_MAX_LENGTH, &bufSize)); bufSize++;
 
         GLchar* name = (GLchar*)alloca(bufSize); // variable name in GLSL
 
         for (GLtype<unsigned int>::type i = 0; UniAttriFormat& fmt : list)
         {   
-            glGetActiveAttrib(this->programid, i, bufSize, nullptr, &fmt.arrayLength, &fmt.type, name);
+            PXcall(glGetActiveAttrib(this->programid, i, bufSize, nullptr, &fmt.arrayLength, &fmt.type, name));
             fmt.name = name, fmt.index = i++;
         }
 
@@ -392,19 +451,19 @@ namespace px
             switch (type)
             {
             case ShaderProgram::VERTEX_SHADER:
-                PXcall(glDeleteShader(this->curshaders[0])), this->curshaders[0] = 0;
+                PXcall(glDeleteShader(this->curshaders[0])); this->curshaders[0] = 0;
                 break;
             case ShaderProgram::FRAGMENT_SHADER: 
-                PXcall(glDeleteShader(this->curshaders[1])), this->curshaders[1] = 0;
+                PXcall(glDeleteShader(this->curshaders[1])); this->curshaders[1] = 0;
                 break;
             case ShaderProgram::GEOMETRY_SHADER:
-                PXcall(glDeleteShader(this->curshaders[2])), this->curshaders[2] = 0;
+                PXcall(glDeleteShader(this->curshaders[2])); this->curshaders[2] = 0;
                 break;
             case ShaderProgram::TESS_CONTROL_SHADER:
-                PXcall(glDeleteShader(this->curshaders[3])), this->curshaders[3] = 0;
+                PXcall(glDeleteShader(this->curshaders[3])); this->curshaders[3] = 0;
                 break;
             case ShaderProgram::TESS_EVALUATION_SHADER:
-                PXcall(glDeleteShader(this->curshaders[4])), this->curshaders[4] = 0;
+                PXcall(glDeleteShader(this->curshaders[4])); this->curshaders[4] = 0;
                 break;
             }
             maskShaderType ^= type;

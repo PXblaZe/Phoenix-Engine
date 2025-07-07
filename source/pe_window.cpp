@@ -1,9 +1,16 @@
+#include <cstdio>
+#include <ios>
 #include <string>
-#include <stdio.h>
-#include <cstdlib>
-#include <string.h>
-#include <stdlib.h>
+#include <iostream>
+// #include <stdio.h>
+// #include <cstdlib>
+// #include <string.h>
+// #include <stdlib.h>
 #include <stdexcept>
+#ifdef __linux__
+#include <gio/gio.h>
+#include <gio/gsettings.h>
+#endif
 
 #include "PXE/pe_init.hpp"
 #include "PXE/pe_window.hpp"
@@ -111,23 +118,23 @@ namespace px {
         double xp, yp;
         
         #if defined(__linux__) || defined(__unix__)
-        
-        FILE* pipe  = popen("gsettings get org.gnome.desktop.peripherals.touchpad disable-while-typing", "r");
-        char val[6];
-
-        if (pipe && fgets(val, 6, pipe) && !memcmp(val, "true", 4)) 
+        GSettings* settings = g_settings_new("org.gnome.desktop.peripherals.touchpad");
+        gboolean dwt_flag = g_settings_get_boolean(settings, "disable-while-typing");
+        std::cout << "dwt_flag = " << dwt_flag << std::endl;
+        if (dwt_flag == TRUE) 
         {
-            system("gsettings set org.gnome.desktop.peripherals.touchpad disable-while-typing false");
+            g_settings_set_boolean(settings, "disable-while-typing", false);
+            std::cout << "dwt: " << g_settings_get_boolean(settings, "disable-while-typing") << std::endl;
         }
 
-        pclose(pipe);
 
         #endif
 
         try {
             double lastFrameTime, deltaTime, currentFrameTime, one_secTime, frameCount, fps;
             lastFrameTime = deltaTime = one_secTime = frameCount = .0;
-            
+                
+            this->pollEvents();
             #pragma omp parallel
             while (!this->shouldClose()) [[hot]] {
 
@@ -162,9 +169,12 @@ namespace px {
     
         #if defined(__linux__) || defined(__unix__)
 
-        if (!memcmp(val, "false", 5)) return;
-
-        system("gsettings set org.gnome.desktop.peripherals.touchpad disable-while-typing true");
+        if (dwt_flag == TRUE) {
+            // system("gsettings set org.gnome.desktop.peripherals.touchpad disable-while-typing true");
+            g_settings_set_boolean(settings, "disable-while-typing", true);
+            std::cout << "dwt1: " << g_settings_get_boolean(settings, "disable-while-typing") << std::endl;
+        }
+        g_object_unref(settings);
 
         #endif
     }

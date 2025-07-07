@@ -1,6 +1,8 @@
 LDir=libs
 SDir=source
 
+
+
 .ONESHELL:
 
 
@@ -20,7 +22,7 @@ build: ${SDir}/*
 	for file in ${PWD}/${SDir}/* ; do \
 		filename="$${file##*/}" ; \
 		echo "Compiling $${file} file..." ; \
-		g++ -std=c++2a -std=gnu++2a -fPIC -Wno-int-to-pointer-cast -Wno-unused-result -Wno-write-strings -c $${file} -I${PWD}/include/ ; \
+		g++ -g -DPX_DEBUG -std=c++23 -fPIC -static -Werror -Wno-int-to-pointer-cast -Wno-unused-result -Wno-write-strings -Ofast -march=native -frename-registers -funroll-loops -c $${file} -I${PWD}/include/ `pkg-config --cflags --libs glib-2.0` ; \
 		if [ -f "$${filename%.*}.o" ]; then \
 			CURRENT=$$(($${CURRENT}+1)) ; \
 			PERCENT=$$(($${CURRENT}*100/$${TOTAL})) ; \

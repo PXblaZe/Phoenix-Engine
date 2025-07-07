@@ -1,0 +1,11 @@
+#!/usr/bin/bash
+
+CC=g++
+STD=-std=c++23
+DBG=-g 
+WFLAGS="-Werror -Wno-conversion-null -Wno-pointer-arith -Wno-pedantic -Wno-write-strings"
+OFLAGS="-Ofast -fdiagnostics-color=always -march=native -frename-registers -funroll-loops"
+LFLAGS="libs/* -lGL -lglfw -lX11 -lXrandr -lXi -fopenmp -lpthread -lGLEW -lassimp $(pkg-config --libs gio-2.0)"
+IFLAGS="-Iinclude $(pkg-config --cflags gio-2.0)"
+
+$CC $STD $DBG $WFLAGS $OFLAGS -o ${1%.*} $1 $IFLAGS $LFLAGS

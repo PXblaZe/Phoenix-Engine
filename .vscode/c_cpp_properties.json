@@ -4,7 +4,8 @@
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/**",
-                "${workspaceFolder}/include/"
+                "${workspaceFolder}/include/",
+                "/usr/include/glib-2.0",
             ],
             "defines": [],
             "compilerPath": "/usr/bin/g++",

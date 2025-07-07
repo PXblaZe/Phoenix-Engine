@@ -7,8 +7,8 @@
             "args": [
                 "-std=c++2a",
                 "-fdiagnostics-color=always",
-                "-Wno-conversion-null", "-Wno-pointer-arith",
-                // "-Ofast", "-march=native", "-frename-registers", "-funroll-loops",
+                "-Wno-conversion-null", "-Wno-pointer-arith", "-Wpedantic",
+                "-Ofast", "-march=native", "-frename-registers", "-funroll-loops",
                 "-g",
                 "${file}",
                 "libs/*",
@@ -24,7 +24,9 @@
                 "-lpthread",
                 "-lXi",
                 "-lGLEW",
-                "-lglut"
+                "-lglut",
+                "-lassimp",
+                "`pkg-config --cflags --libs glib-2.0`"
             ],
             "options": {
                 "cwd": "${fileDirname}"

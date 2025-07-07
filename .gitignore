@@ -10,3 +10,7 @@ backup/
 ts?.glsl
 *.obj
 *.mtl
+core_dump
+output.txt
+compile_commands.json
+.cache/
